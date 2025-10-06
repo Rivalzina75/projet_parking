@@ -1,25 +1,26 @@
 (Ouvrir en plein écran)
 /
 ├── /accueil  → Page d’accueil (présentation du service)
-│	 
-├── /inscription  → Demande d’inscription (validée ensuite par l’admin)
-│
-├── /utilisateur  → Espace utilisateur (accès sécurisé)
-│   │
-│   ├── /utilisateur/dashboard  → Tableau de bord : Comporte la place de l'utilisateur OU sa place dans la file
-│   │				       			d'attente OU le bouton pour réserver s'il n'en a pas				    historique de l'utilisateur pour qu'il puisse voir les places qui lui a déjà été attribué
-│   │
-│   │
-│   └── /utilisateur/profil  → Modification du mot de passe
-│
-├── /admin	 → Espace administrateur (accès sécurisé)
-│   │
-│   ├── /admin/utilisateurs  → Liste des utilisateurs, réinitialisation mots de passe, historique des places en fonction de l'utilisateur (liste des utilisateurs avec leurs places et leurs historique)
-│   │				    	    Voir la place attribué à l'utilisateur actuellement
-│   │
-│   ├── /admin/places  → Gestion des places de parking (modifier, supprimer, ajouter)
-│ 
-│   
-├── /aide	→ Documentation utilisateur
-│
-└── /mentions-legales  → Informations légales + contact
+     │
+     ├── /inscription  → Demande d’inscription (validée ensuite par l’admin)
+     │
+     │
+     ├── /utilisateur  → Espace utilisateur (accès sécurisé)
+     │   │
+     │   ├── /utilisateur/dashboard  → Tableau de bord : Comporte la place de l'utilisateur OU sa place dans la file
+     │   │				       			d'attente OU le bouton pour réserver s'il n'en a pas				    historique de l'utilisateur pour qu'il puisse voir les places qui lui a déjà été attribué
+     │   │
+     │   │
+     │   └── /utilisateur/profil  → Modification du mot de passe
+     │
+     ├── /admin	 → Espace administrateur (accès sécurisé)
+     │   │
+     │   ├── /admin/utilisateurs  → Liste des utilisateurs, réinitialisation mots de passe, historique des places en fonction de l'utilisateur (liste des utilisateurs avec leurs places et leurs historique)
+     │   │				    	    Voir la place attribué à l'utilisateur actuellement
+     │   │
+     │   ├── /admin/places  → Gestion des places de parking (modifier, supprimer, ajouter)
+     │ 
+     │   
+     ├── /aide	→ Documentation utilisateur
+     │
+     └── /mentions-legales  → Informations légales + contact

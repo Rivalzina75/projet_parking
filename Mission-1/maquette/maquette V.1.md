@@ -1,0 +1,34 @@
+# Site
+- Page d'accueil
+  - Bouton Accueil
+    - Renvoie sur accueil
+  - Bouton utilisateur
+    - Bouton de connexion
+      - Formulaire de connexion
+        - Espace utilisateur
+          - Tableau de bord
+          - Ma place
+          - Formulaire demande de réservation
+          - File
+          - Historique
+          - Profil
+            - Bouton modification de mot de passe
+              - Formulaire modification de mot de passe
+            - Bouton modification d'adresse mail 
+              - Formulaire modification d'adresse mail
+    - Bouton d'inscription
+      - Formulaire d'inscription
+  - Bouton Aide
+    - Documentation utilisateur
+  - Bouton Contact
+    - Formulaire contact
+  - Bouton mentions légales
+    - Informations légales 
+- Espace Admin
+  - Tableau de bord
+    - Utilisateurs
+    - Gestion place parking
+    - Attribution manuelle
+    - Suivi des réservation
+    - Consultation /Edition de la liste d'attente 
+    - Historique des attributions 

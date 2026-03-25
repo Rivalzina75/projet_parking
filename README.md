@@ -119,3 +119,32 @@ Ajoutez à votre portfolio :
 ---
 
 *Ce document a été traduit de LaTeX par [HEVEA](http://hevea.inria.fr/).*
+
+
+
+
+Barême :
+
+Base de données
+Note maximale6
+git
+Tout le monde a utilisé git
+Note maximale3
+Connexion
+Note maximale1
+Réserver
+Note maximale3
+Historique résas
+Note maximale1
+Liste attente
+Note maximale1
+Validations inscriptions
+Note maximale1
+Places (ajouter/modifier/supprimer)
+Note maximale1
+Forcer réservations
+Note maximale1
+Edition liste attente
+Note maximale1
+Historique place
+Note maximale1

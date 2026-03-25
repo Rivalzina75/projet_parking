@@ -1,61 +1,121 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PPE - Attribution des places de parking
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Table des matières
 
-## About Laravel
+- [1. Présentation](#1-présentation)
+- [2. Spécification du besoin](#2-spécification-du-besoin)
+- [3. Résultats attendus](#3-résultats-attendus)
+  - [3.1 Sécurité](#31-sécurité)
+  - [3.2 Gestion des mots de passe](#32-gestion-des-mots-de-passe)
+  - [3.3 Espace utilisateur](#33-espace-utilisateur)
+  - [3.4 Espace administrateur](#34-espace-administrateur)
+  - [3.5 Pages web](#35-pages-web)
+  - [3.6 Documentation](#36-documentation)
+  - [3.7 Accès depuis le réseau local](#37-accès-depuis-le-réseau-local)
+- [4. Productions](#4-productions)
+  - [4.1 Chef de projet](#41-chef-de-projet)
+  - [4.2 Équipe](#42-équipe)
+  - [4.3 Individuel](#43-individuel)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 1. Présentation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Afin d'éviter le stationnement sauvage dans le labyrinthe qu'est le parking, il a été décidé d'attribuer à chaque membre qui le demandait une place de parking numérotée.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 2. Spécification du besoin
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Le front-office doit être sécurisé et n'accepter que les demandes du personnel des ligues. Les inscriptions au service de réservation de place doivent être validées (ou créées) par un administrateur.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+L'administrateur, seul utilisateur du back-office, doit pouvoir éditer la liste des places et gérer les inscriptions des utilisateurs.
 
-## Laravel Sponsors
+Lorsqu'un utilisateur en fait la demande, une place libre lui est attribuée aléatoirement et immédiatement par l'application, la réservation expire automatiquement au bout d'une durée par défaut déterminée par l'administrateur.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Si une demande ne peut pas être satisfaite, l'utilisateur est placé en liste d'attente.
 
-### Premium Partners
+L'utilisateur ne peut pas choisir la date à laquelle une place lui est attribuée, les réservations sont toujours immédiates. Un utilisateur ne peut pas faire une demande de réservation s'il est en file d'attente ou qu'il occupe une place.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Un utilisateur ou l'administrateur peuvent fermer une réservation avant la date d'expiration prévue. Une fois celle-ci expirée, l'utilisateur doit refaire une demande s'il souhaite obtenir une place.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 3. Résultats attendus
 
-## Code of Conduct
+Il serait souhaitable que les fonctionnalités ci-après soient mises en place. Si vous n'avez pas le temps de toutes les traiter, occupez-vous d'abord des plus importantes. S'il reste du temps, cherchez des améliorations à apporter.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3.1 Sécurité
 
-## Security Vulnerabilities
+- Protection des accès par mot de passe.
+- Contrôles de saisie des données côté serveur.
+- Contrôles de saisie côté client.
+- Protection contre les attaques par injection.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3.2 Gestion des mots de passe
 
-## License
+- Fonction "mot de passe perdu ?".
+- Hachage des mots de passe.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 3.3 Espace utilisateur
+
+- Vérification de l'identité par saisie d'un mot de passe.
+- Possibilité de visualiser le numéro de place attribuée, ainsi que l'historique des places précédemment attribuées.
+- Possibilité de faire une demande de réservation.
+- Possibilité de connaître son rang sur la file d'attente.
+- Modification du mot de passe.
+
+### 3.4 Espace administrateur
+
+- Protection de l'accès par mot de passe.
+- Édition de la liste des utilisateurs, réinitialisation des mots de passe.
+- Édition de la liste des places.
+- Consultation de la liste d'attente.
+- Consultation de l'historique d'attribution des places.
+- Attribution manuelle des places.
+- Édition de la file d'attente (modification de la position des personnes en attente).
+
+### 3.5 Pages web
+
+- Mise aux normes HTML5 et CSS des pages web.
+- Utilisation d'un design responsive.
+
+### 3.6 Documentation
+
+- Liste des tâches à accomplir triées par ordre de priorité.
+- Le plan du site, dans lequel vous préciserez les URLs.
+- Documentation utilisateur, accessible depuis l'application.
+- Documentation permettant de comprendre comment est construite l'application (schémas, impressions d'écran, architecture de l'application, MCD...).
+
+### 3.7 Accès depuis le réseau local
+
+- Installation de l'application sur un serveur accessible depuis le réseau local.
+
+---
+
+## 4. Productions
+
+### 4.1 Chef de projet
+
+Remise à la fin de la séance d'un rapport indiquant :
+
+- La répartition des tâches et le planning (il est conseillé de faire un diagramme de Gantt).
+- Il est conseillé d'utiliser un logiciel de gestion de tâches et de travail collaboratif (Trello, Asana, Slack, etc.)
+
+### 4.2 Équipe
+
+- Présentation sur diapositives (PDF ou PowerPoint) des productions par l'équipe. Le chef de projet anime la présentation, mais tous les membres de l'équipe doivent intervenir au moins une fois.
+- Démonstration des productions.
+
+### 4.3 Individuel
+
+Ajoutez à votre portfolio :
+
+- Un compte-rendu d'activité détaillant le travail que vous avez effectué (extraits de code, explications, impressions d'écran, compétences du référentiel mises en œuvre).
+- Le code source sur [GitHub](http://github.com/).
+- La documentation utilisateur.
+- La documentation développeur.
+
+---
+
+*Ce document a été traduit de LaTeX par [HEVEA](http://hevea.inria.fr/).*

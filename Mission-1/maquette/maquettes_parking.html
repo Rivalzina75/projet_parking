@@ -1,0 +1,264 @@
+
+<div style="font-family:var(--font-sans);padding:4px 0;">
+
+<div style="margin-bottom:16px;padding-bottom:14px;border-bottom:0.5px solid var(--color-border-tertiary);">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+    <span style="font-size:11px;padding:2px 10px;background:#E6F1FB;color:#0C447C;border-radius:4px;font-weight:500;">Pages publiques</span>
+    <button class="npb" data-page="accueil" data-sec="pub" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:none;background:#185FA5;color:white;cursor:pointer;">Accueil</button>
+    <button class="npb" data-page="inscription" data-sec="pub" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:0.5px solid #185FA5;background:transparent;color:#185FA5;cursor:pointer;">Inscription</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+    <span style="font-size:11px;padding:2px 10px;background:#EAF3DE;color:#27500A;border-radius:4px;font-weight:500;">Espace utilisateur</span>
+    <button class="npb" data-page="dashboard" data-sec="usr" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:0.5px solid #3B6D11;background:transparent;color:#3B6D11;cursor:pointer;">Dashboard</button>
+    <button class="npb" data-page="profil" data-sec="usr" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:0.5px solid #3B6D11;background:transparent;color:#3B6D11;cursor:pointer;">Profil</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:11px;padding:2px 10px;background:#FAEEDA;color:#633806;border-radius:4px;font-weight:500;">Espace admin</span>
+    <button class="npb" data-page="adm-users" data-sec="adm" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:0.5px solid #854F0B;background:transparent;color:#854F0B;cursor:pointer;">Utilisateurs</button>
+    <button class="npb" data-page="adm-detail" data-sec="adm" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:0.5px solid #854F0B;background:transparent;color:#854F0B;cursor:pointer;">Fiche utilisateur</button>
+    <button class="npb" data-page="adm-places" data-sec="adm" onclick="gp(this)" style="padding:5px 13px;font-size:12px;border-radius:6px;border:0.5px solid #854F0B;background:transparent;color:#854F0B;cursor:pointer;">Places</button>
+  </div>
+</div>
+
+<div id="pc"></div>
+
+<script>
+const ubar = url => '<div style="background:var(--color-background-secondary);padding:8px 16px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:10px;"><div style="display:flex;gap:5px;"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f57;"></div><div style="width:10px;height:10px;border-radius:50%;background:#febc2e;"></div><div style="width:10px;height:10px;border-radius:50%;background:#28c840;"></div></div><div style="flex:1;text-align:center;font-family:monospace;font-size:11px;">' + url + '</div></div>';
+
+const frm = (url, c) => '<div style="border:0.5px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden;background:var(--color-background-primary);">' + ubar(url) + c + '</div>';
+
+const sb = (items, ac) => {
+  const col = {pub:'#185FA5',usr:'#3B6D11',adm:'#854F0B'};
+  const lbg = {pub:'#E6F1FB',usr:'#EAF3DE',adm:'#FAEEDA'};
+  const ltx = {pub:'#0C447C',usr:'#27500A',adm:'#633806'};
+  return '<div style="width:190px;flex-shrink:0;border-right:0.5px solid var(--color-border-tertiary);padding:14px;background:'+lbg[ac]+'20;display:flex;flex-direction:column;">'+
+    '<div style="font-size:13px;font-weight:500;color:'+ltx[ac]+';margin-bottom:18px;padding:8px 10px;background:'+lbg[ac]+';border-radius:6px;">ParkingPro</div>'+
+    items.map(([l,a])=>'<div style="padding:7px 10px;border-radius:6px;font-size:13px;'+(a?'background:'+col[ac]+';color:white;':'color:var(--color-text-secondary);')+'margin-bottom:4px;cursor:pointer;">'+l+'</div>').join('')+
+    '<div style="padding:7px 10px;border-radius:6px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;margin-top:auto;">Déconnexion</div>'+
+  '</div>';
+};
+
+const row = (cells, hd) => '<tr style="'+(hd?'background:var(--color-background-secondary);':'border-top:0.5px solid var(--color-border-tertiary);')+'">' +
+  cells.map((c,i)=>hd ? '<th style="padding:9px 14px;text-align:left;font-weight:500;color:var(--color-text-secondary);font-size:12px;">'+c+'</th>' : '<td style="padding:9px 14px;'+(i===0?'font-weight:500;color:var(--color-text-primary)':'color:var(--color-text-secondary)')+' ">'+c+'</td>').join('') + '</tr>';
+
+const tbl = (headers, rows) => '<div style="border:0.5px solid var(--color-border-tertiary);border-radius:8px;overflow:hidden;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead>' + row(headers, true) + '</thead><tbody>' + rows + '</tbody></table></div>';
+
+const inp = (lbl, val, type) => '<div style="margin-bottom:11px;"><label style="font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px;">'+lbl+'</label><div style="padding:8px 12px;border:0.5px solid var(--color-border-secondary);border-radius:6px;font-size:13px;color:'+(val?'var(--color-text-primary)':'var(--color-text-tertiary)')+';background:var(--color-background-primary);">'+( val || '' )+'</div></div>';
+
+const badge = (t, bg, tx) => '<span style="padding:2px 8px;border-radius:4px;font-size:11px;background:'+bg+';color:'+tx+';">'+t+'</span>';
+
+const btn = (t, bg, bd, tx, extra) => '<button style="padding:'+(extra||'6px 14px')+';border-radius:6px;border:0.5px solid '+bd+';background:'+bg+';color:'+tx+';cursor:pointer;font-size:12px;">' + t + '</button>';
+
+const pages = {
+
+accueil: () => frm('https://parking.fr/accueil', 
+  '<div>'+
+  '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:0.5px solid var(--color-border-tertiary);">'+
+    '<div style="font-size:17px;font-weight:500;color:#185FA5;">ParkingPro</div>'+
+    '<div style="display:flex;gap:8px;">'+
+      btn('Se connecter','transparent','#185FA5','#185FA5')+
+      btn('S\'inscrire','#185FA5','transparent','white')+
+    '</div>'+
+  '</div>'+
+  '<div style="padding:48px 28px;text-align:center;background:linear-gradient(to bottom,#E6F1FB22,transparent);">'+
+    '<div style="font-size:26px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;">Réservez votre place de parking</div>'+
+    '<div style="font-size:13px;color:var(--color-text-secondary);max-width:440px;margin:0 auto 24px;line-height:1.6;">Système de gestion de places pour les employés. Demandez votre attribution ou suivez votre position dans la file d\'attente.</div>'+
+    btn('Demander une place','#185FA5','transparent','white','10px 28px')+
+  '</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:24px 28px;border-top:0.5px solid var(--color-border-tertiary);">'+
+    [['1. Inscription','Créez votre compte et attendez la validation de l\'administrateur.'],['2. Attribution','Recevez votre place ou rejoignez la liste d\'attente.'],['3. Suivi','Consultez votre place et votre historique depuis votre tableau de bord.']].map(([t,d])=>'<div style="padding:14px;background:var(--color-background-secondary);border-radius:8px;"><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px;">'+t+'</div><div style="font-size:12px;color:var(--color-text-secondary);line-height:1.5;">'+d+'</div></div>').join('')+
+  '</div>'+
+  '</div>'
+),
+
+inscription: () => frm('https://parking.fr/inscription',
+  '<div style="max-width:440px;margin:32px auto;padding:0 24px 36px;">'+
+    '<div style="font-size:19px;font-weight:500;margin-bottom:4px;color:var(--color-text-primary);">Créer un compte</div>'+
+    '<div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:20px;">Votre demande sera validée par un administrateur.</div>'+
+    '<div style="padding:11px 14px;background:#E6F1FB;border-radius:8px;font-size:12px;color:#0C447C;margin-bottom:20px;border-left:3px solid #185FA5;line-height:1.5;">Votre compte sera activé manuellement après vérification. Une confirmation vous sera envoyée par email.</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:2px;">'+
+      inp('Nom','Dupont')+inp('Prénom','Marie')+
+    '</div>'+
+    inp('Email','marie.dupont@entreprise.fr')+
+    inp('Mot de passe','••••••••••')+
+    inp('Confirmer le mot de passe','••••••••••')+
+    '<button style="width:100%;padding:10px;border-radius:6px;border:none;background:#185FA5;color:white;cursor:pointer;font-size:14px;font-weight:500;margin-top:6px;">Envoyer ma demande</button>'+
+    '<div style="text-align:center;font-size:12px;color:var(--color-text-secondary);margin-top:14px;">Déjà inscrit ? <span style="color:#185FA5;cursor:pointer;">Se connecter</span></div>'+
+  '</div>'
+),
+
+dashboard: () => frm('https://parking.fr/utilisateur/dashboard',
+  '<div style="display:flex;min-height:480px;">'+
+    sb([['Tableau de bord',true],['Mon profil',false]],'usr')+
+    '<div style="flex:1;padding:22px;overflow:auto;">'+
+      '<div style="font-size:15px;font-weight:500;margin-bottom:4px;color:var(--color-text-primary);">Bonjour, Marie</div>'+
+      '<div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:18px;">Vendredi 21 mars 2025</div>'+
+      '<div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:20px;">'+
+
+        '<div style="padding:18px;background:#EAF3DE;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">'+
+          '<div>'+
+            '<div style="font-size:10px;color:#3B6D11;font-weight:500;letter-spacing:0.5px;margin-bottom:4px;">MA PLACE ACTUELLE</div>'+
+            '<div style="font-size:36px;font-weight:500;color:#27500A;margin-bottom:2px;">P-14</div>'+
+            '<div style="font-size:12px;color:#3B6D11;">Bâtiment A · Niveau -1 · depuis le 01/01/2025</div>'+
+          '</div>'+
+          '<div style="width:56px;height:56px;background:#3B6D11;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:500;flex-shrink:0;">P</div>'+
+        '</div>'+
+
+        '<div style="padding:14px 16px;background:var(--color-background-secondary);border-radius:8px;border:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;">'+
+          '<div style="font-size:12px;color:var(--color-text-secondary);font-style:italic;">Autres états possibles : <strong style="font-weight:500;color:var(--color-text-primary);">En file d\'attente</strong> (affiche le rang et la date de demande) · <strong style="font-weight:500;color:var(--color-text-primary);">Sans place</strong> (bouton « Rejoindre la file »)</div>'+
+        '</div>'+
+
+      '</div>'+
+      '<div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;">Historique des attributions</div>'+
+      tbl(['Place','Début','Fin'],
+        [['P-07','01/06/2024','30/09/2024'],['P-03','01/01/2024','31/05/2024'],['P-11','15/03/2023','31/12/2023']].map(([p,d,f])=>row([p,d,f],false)).join('')
+      )+
+    '</div>'+
+  '</div>'
+),
+
+profil: () => frm('https://parking.fr/utilisateur/profil',
+  '<div style="display:flex;min-height:420px;">'+
+    sb([['Tableau de bord',false],['Mon profil',true]],'usr')+
+    '<div style="flex:1;padding:22px;">'+
+      '<div style="font-size:15px;font-weight:500;margin-bottom:18px;color:var(--color-text-primary);">Mon profil</div>'+
+      '<div style="padding:14px 16px;background:var(--color-background-secondary);border-radius:8px;margin-bottom:20px;">'+
+        '<div style="font-size:11px;color:var(--color-text-secondary);font-weight:500;margin-bottom:10px;letter-spacing:0.4px;">INFORMATIONS DU COMPTE</div>'+
+        [['Nom','Dupont'],['Prénom','Marie'],['Email','marie.dupont@entreprise.fr'],['Rôle','Utilisateur']].map(([l,v])=>'<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;"><span style="color:var(--color-text-secondary);">'+l+'</span><span style="color:var(--color-text-primary);">'+v+'</span></div>').join('')+
+      '</div>'+
+      '<div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px;">Changer le mot de passe</div>'+
+      inp('Mot de passe actuel','••••••••••')+
+      inp('Nouveau mot de passe','')+
+      inp('Confirmer le nouveau mot de passe','')+
+      btn('Enregistrer','#3B6D11','transparent','white','8px 20px')+
+    '</div>'+
+  '</div>'
+),
+
+'adm-users': () => frm('https://parking.fr/admin/utilisateurs/',
+  '<div style="display:flex;min-height:500px;">'+
+    sb([['Tableau de bord',false],['Utilisateurs',true],['Places',false]],'adm')+
+    '<div style="flex:1;padding:22px;overflow:auto;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
+        '<div style="font-size:15px;font-weight:500;color:var(--color-text-primary);">Gestion des utilisateurs</div>'+
+        '<div style="font-size:12px;color:var(--color-text-secondary);">5 utilisateurs</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:14px;">'+
+        [['Tous',true],['Avec place',false],['En attente',false],['Sans place',false]].map(([l,a])=>'<div style="padding:4px 11px;border-radius:6px;font-size:12px;cursor:pointer;'+(a?'background:#854F0B;color:white;':'border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);')+'">'+l+'</div>').join('')+
+      '</div>'+
+      tbl(['Nom','Email','Statut','Place','Actions'],
+        [
+          ['Marie Dupont','m.dupont@co.fr','Avec place','P-14'],
+          ['Jean Martin','j.martin@co.fr','En attente (rang 2)','—'],
+          ['Sophie Bernard','s.bernard@co.fr','Avec place','P-03'],
+          ['Lucas Petit','l.petit@co.fr','Sans place','—'],
+          ['Emma Leroy','e.leroy@co.fr','En attente (rang 5)','—'],
+        ].map(([n,e,s,p])=>{
+          const sbg = s.includes('Avec')?'#EAF3DE':s.includes('attente')?'#FAEEDA':'var(--color-background-secondary)';
+          const stx = s.includes('Avec')?'#27500A':s.includes('attente')?'#633806':'var(--color-text-secondary)';
+          return '<tr style="border-top:0.5px solid var(--color-border-tertiary);">'+
+            '<td style="padding:9px 14px;font-weight:500;color:var(--color-text-primary);">'+n+'</td>'+
+            '<td style="padding:9px 14px;color:var(--color-text-secondary);">'+e+'</td>'+
+            '<td style="padding:9px 14px;">'+badge(s,sbg,stx)+'</td>'+
+            '<td style="padding:9px 14px;font-weight:'+(p!=='—'?'500':'400')+';color:var(--color-text-primary);">'+p+'</td>'+
+            '<td style="padding:9px 14px;"><div style="display:flex;gap:5px;">'+
+              btn('Voir','transparent','#854F0B','#854F0B','4px 9px')+
+              btn('Réinit. mdp','transparent','var(--color-border-secondary)','var(--color-text-secondary)','4px 9px')+
+            '</div></td>'+
+          '</tr>';
+        }).join('')
+      )+
+    '</div>'+
+  '</div>'
+),
+
+'adm-detail': () => frm('https://parking.fr/admin/utilisateurs/1',
+  '<div style="display:flex;min-height:520px;">'+
+    sb([['Tableau de bord',false],['Utilisateurs',true],['Places',false]],'adm')+
+    '<div style="flex:1;padding:22px;overflow:auto;">'+
+      '<div style="font-size:12px;color:#854F0B;cursor:pointer;margin-bottom:14px;">&#8592; Retour à la liste</div>'+
+      '<div style="font-size:15px;font-weight:500;margin-bottom:18px;color:var(--color-text-primary);">Fiche utilisateur — Marie Dupont</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">'+
+        '<div style="padding:14px 16px;background:var(--color-background-secondary);border-radius:8px;">'+
+          '<div style="font-size:11px;color:var(--color-text-secondary);font-weight:500;margin-bottom:10px;letter-spacing:0.4px;">INFORMATIONS</div>'+
+          [['Nom','Dupont'],['Prénom','Marie'],['Email','m.dupont@co.fr'],['Rôle','Utilisateur'],['Compte créé','15/11/2022'],['Statut','Actif']].map(([l,v])=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;"><span style="color:var(--color-text-secondary);">'+l+'</span><span style="color:var(--color-text-primary);">'+v+'</span></div>').join('')+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;gap:12px;">'+
+          '<div style="padding:14px 16px;background:#EAF3DE;border-radius:8px;">'+
+            '<div style="font-size:11px;color:#3B6D11;font-weight:500;margin-bottom:8px;letter-spacing:0.4px;">PLACE ACTUELLE</div>'+
+            '<div style="font-size:30px;font-weight:500;color:#27500A;margin-bottom:2px;">P-14</div>'+
+            '<div style="font-size:12px;color:#3B6D11;margin-bottom:10px;">Depuis le 01/01/2025</div>'+
+            '<button style="width:100%;padding:7px;font-size:12px;border-radius:6px;border:none;background:#3B6D11;color:white;cursor:pointer;">Changer la place</button>'+
+          '</div>'+
+          '<div style="padding:14px 16px;background:var(--color-background-secondary);border-radius:8px;">'+
+            '<div style="font-size:11px;color:var(--color-text-secondary);font-weight:500;margin-bottom:10px;letter-spacing:0.4px;">ACTIONS</div>'+
+            '<button style="width:100%;padding:7px;font-size:12px;border-radius:6px;border:0.5px solid #854F0B;background:transparent;color:#854F0B;cursor:pointer;margin-bottom:7px;">Réinitialiser le mot de passe</button>'+
+            '<button style="width:100%;padding:7px;font-size:12px;border-radius:6px;border:0.5px solid var(--color-border-danger);background:transparent;color:var(--color-text-danger);cursor:pointer;">Désactiver le compte</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;">Historique des places</div>'+
+      tbl(['Place','Début','Fin'],
+        [['P-07','01/06/2024','30/09/2024'],['P-03','01/01/2024','31/05/2024'],['P-11','15/03/2023','31/12/2023']].map(([p,d,f])=>row([p,d,f],false)).join('')
+      )+
+    '</div>'+
+  '</div>'
+),
+
+'adm-places': () => frm('https://parking.fr/admin/places/',
+  '<div style="display:flex;min-height:500px;">'+
+    sb([['Tableau de bord',false],['Utilisateurs',false],['Places',true]],'adm')+
+    '<div style="flex:1;padding:22px;overflow:auto;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+        '<div style="font-size:15px;font-weight:500;color:var(--color-text-primary);">Gestion des places</div>'+
+        btn('+ Ajouter une place','#854F0B','transparent','white','7px 14px')+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">'+
+        [['Total places','12','var(--color-background-secondary)','var(--color-text-primary)','var(--color-text-secondary)'],['Occupées','9','#EAF3DE','#27500A','#3B6D11'],['Libres','3','#FAEEDA','#633806','#854F0B']].map(([l,v,bg,tc,lc])=>'<div style="padding:13px;background:'+bg+';border-radius:8px;text-align:center;"><div style="font-size:11px;color:'+lc+';margin-bottom:4px;font-weight:500;">'+l+'</div><div style="font-size:26px;font-weight:500;color:'+tc+';">'+v+'</div></div>').join('')+
+      '</div>'+
+      tbl(['Numéro','Emplacement','Statut','Occupée par','Actions'],
+        [
+          ['P-01','Bat. A · N-1','Occupée','T. Noir'],
+          ['P-02','Bat. A · N-1','Occupée','C. Blanc'],
+          ['P-03','Bat. A · N-1','Occupée','S. Bernard'],
+          ['P-04','Bat. A · N-1','Libre','—'],
+          ['P-05','Bat. B · N-1','Occupée','P. Martin'],
+          ['P-06','Bat. B · N-1','Libre','—'],
+          ['P-07','Bat. B · N-2','Occupée','M. Duval'],
+          ['P-08','Bat. B · N-2','Libre','—'],
+        ].map(([num,loc,st,usr])=>'<tr style="border-top:0.5px solid var(--color-border-tertiary);">'+
+          '<td style="padding:9px 14px;font-weight:500;color:var(--color-text-primary);">'+num+'</td>'+
+          '<td style="padding:9px 14px;color:var(--color-text-secondary);font-size:12px;">'+loc+'</td>'+
+          '<td style="padding:9px 14px;">'+badge(st, st==='Libre'?'#FAEEDA':'#EAF3DE', st==='Libre'?'#633806':'#27500A')+'</td>'+
+          '<td style="padding:9px 14px;color:var(--color-text-secondary);">'+usr+'</td>'+
+          '<td style="padding:9px 14px;"><div style="display:flex;gap:5px;">'+
+            btn('Modifier','transparent','#854F0B','#854F0B','4px 9px')+
+            btn('Supprimer','transparent','var(--color-border-danger)','var(--color-text-danger)','4px 9px')+
+          '</div></td>'+
+        '</tr>').join('')
+      )+
+    '</div>'+
+  '</div>'
+)
+};
+
+function gp(el) {
+  const pg = el.dataset.page;
+  const sec = el.dataset.sec;
+  const cols = {pub:'#185FA5',usr:'#3B6D11',adm:'#854F0B'};
+  document.querySelectorAll('.npb').forEach(b => {
+    const bs = b.dataset.sec;
+    const isA = b.dataset.page === pg;
+    b.style.background = isA ? cols[bs] : 'transparent';
+    b.style.color = isA ? 'white' : cols[bs];
+    b.style.borderColor = isA ? 'transparent' : cols[bs];
+    b.style.border = '0.5px solid ' + (isA ? 'transparent' : cols[bs]);
+  });
+  document.getElementById('pc').innerHTML = pages[pg]();
+}
+
+document.querySelector('[data-page="accueil"]').style.background = '#185FA5';
+document.querySelector('[data-page="accueil"]').style.color = 'white';
+document.getElementById('pc').innerHTML = pages['accueil']();
+</script>
+</div>

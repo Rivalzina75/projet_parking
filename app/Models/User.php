@@ -11,6 +11,8 @@ class User extends Model
         'lastname',
         'email',
         'password',
+        'role',
+        'is_validated',
     ];
 
     protected $hidden = [
@@ -20,5 +22,6 @@ class User extends Model
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_validated' => 'boolean',
     ];
 }

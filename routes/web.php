@@ -16,6 +16,7 @@ Route::get('/', function () {
 Route::get('/register', [RegisterController::class, 'showregister']);
 // register form
 Route::post('/register', [RegisterController::class, 'register']);
+// register successful page
 
 // login show
 Route::get('/login', [LoginController::class, 'showlogin']);

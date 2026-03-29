@@ -52,14 +52,9 @@
                         @endif
                     @else
                         <a class="nav-link {{ request()->routeIs('login', 'login.*') ? 'active' : '' }}" href="{{ route('login') }}">Connexion</a>
+                        <a class="nav-link {{ request()->routeIs('register.show', 'register.*') ? 'active' : '' }}" href="{{ route('register.show') }}">Inscription</a>
                     @endauth
                 </div>
-
-                @guest
-                <div class="topbar-actions">
-                        <a href="{{ route('register.show') }}" class="btn btn-primary">Inscription</a>
-                </div>
-                @endguest
             </nav>
         </div>
     </header>

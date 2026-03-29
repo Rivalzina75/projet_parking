@@ -11,20 +11,20 @@
         </article>
 
         <div class="panel form-panel">
-        <form method="POST" action="{{ route('login.submit') }}" class="form-grid auth-form">
-            @csrf
+            <form method="POST" action="{{ route('login.submit') }}" class="form-grid auth-form">
+                @csrf
 
-            <label>Email
-                <input type="email" name="email" value="{{ old('email') }}" required>
-            </label>
+                <label>Email
+                    <input type="email" name="email" value="{{ old('email') }}" required>
+                </label>
 
-            <label>Mot de passe
-                <input type="password" name="password" required>
-            </label>
+                <label>Mot de passe
+                    <input type="password" name="password" required>
+                </label>
 
-            <button type="submit" class="btn btn-primary">Se connecter</button>
-            <a href="{{ route('password.forgot') }}">Mot de passe perdu ?</a>
-        </form>
+                <button type="submit" class="btn btn-primary">Se connecter</button>
+                <a href="{{ route('password.forgot') }}">Mot de passe perdu ?</a>
+            </form>
         </div>
     </section>
 @endsection

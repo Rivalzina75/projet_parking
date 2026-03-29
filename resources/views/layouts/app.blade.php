@@ -25,7 +25,7 @@
                         <a class="nav-link {{ request()->routeIs('user.*') ? 'active' : '' }}" href="{{ route('user.dashboard') }}">Mon espace</a>
                     @endif
                 @else
-                    <a class="nav-link {{ request()->routeIs('login.*') ? 'active' : '' }}" href="{{ route('login.show') }}">Connexion</a>
+                    <a class="nav-link {{ request()->routeIs('login', 'login.*') ? 'active' : '' }}" href="{{ route('login') }}">Connexion</a>
                 @endauth
             </div>
 
@@ -62,7 +62,7 @@
 </main>
 
 <footer class="container footer">
-    <p>ParkingPro · Application interne d’attribution des places</p>
+    <p>ParkingPro · Application interne d'attribution des places</p>
 </footer>
 </body>
 </html>

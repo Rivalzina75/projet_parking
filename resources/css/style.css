@@ -463,3 +463,136 @@ tbody tr:hover {
         font-size: 14px;
     }
 }
+
+/* =====================
+   SIDEBAR LAYOUT
+   ===================== */
+
+.page-panel {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    min-height: 500px;
+}
+
+.page-sidebar {
+    width: 190px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--slate-200);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.sb-brand {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+}
+
+.sb-link {
+    display: block;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--slate-500);
+    text-decoration: none;
+    margin-bottom: 4px;
+    transition: 120ms;
+}
+
+.sb-link.active {
+    color: white;
+}
+
+.sb-logout {
+    display: block;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--slate-500);
+    cursor: pointer;
+    background: none;
+    border: none;
+    text-align: left;
+    margin-top: auto;
+    width: 100%;
+    font-family: inherit;
+}
+
+.sb-logout:hover {
+    background: var(--slate-100);
+}
+
+/* User sidebar – green */
+.sb-user {
+    background: rgba(234, 243, 222, 0.25);
+}
+
+.sb-user .sb-brand {
+    background: #EAF3DE;
+    color: #27500A;
+}
+
+.sb-user .sb-link.active {
+    background: #3B6D11;
+}
+
+.sb-user .sb-link:hover:not(.active) {
+    background: rgba(59, 109, 17, 0.08);
+    color: #3B6D11;
+}
+
+/* Admin sidebar – amber */
+.sb-admin {
+    background: rgba(250, 238, 218, 0.25);
+}
+
+.sb-admin .sb-brand {
+    background: #FAEEDA;
+    color: #633806;
+}
+
+.sb-admin .sb-link.active {
+    background: #854F0B;
+}
+
+.sb-admin .sb-link:hover:not(.active) {
+    background: rgba(133, 79, 11, 0.08);
+    color: #854F0B;
+}
+
+.page-body {
+    flex: 1;
+    padding: 22px;
+    overflow: auto;
+    min-width: 0;
+}
+
+@media (max-width: 700px) {
+    .page-panel {
+        flex-direction: column;
+    }
+
+    .page-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--slate-200);
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .sb-brand {
+        margin-bottom: 0;
+        flex-basis: 100%;
+    }
+
+    .sb-logout {
+        margin-top: 0;
+    }
+}

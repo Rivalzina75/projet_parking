@@ -19,7 +19,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/inscription', [RegisterController::class, 'showregister'])->name('register.show');
     Route::post('/inscription', [RegisterController::class, 'register'])->name('register.submit');
 
-    Route::get('/login', [LoginController::class, 'showlogin'])->name('login.show');
+    // CRITIQUE : doit s'appeler 'login' pour que le middleware auth fonctionne
+    Route::get('/login', [LoginController::class, 'showlogin'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
     Route::get('/reset-password', [ResetPasswordController::class, 'showresetpassword'])->name('password.forgot');

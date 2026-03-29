@@ -5,6 +5,8 @@ namespace Tests\Feature\Security;
 use App\Models\User;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,7 +28,7 @@ class SQLInjectionAndXSSProtectionTest extends TestCase
         ]);
 
         // La table users doit toujours exister
-        $this->assertTrue(\DB::table('users')->count() > 0);
+        $this->assertTrue(DB::table('users')->count() > 0);
 
         // L'utilisateur doit avoir son nom tel qu'entré
         $user = User::where('email', 'test@example.com')->first();
@@ -53,6 +55,7 @@ class SQLInjectionAndXSSProtectionTest extends TestCase
      */
     public function test_xss_protection_in_user_names(): void
     {
+        /** @var User $user */
         $user = User::factory()->create([
             'name' => "<script>alert('XSS')</script>",
             'is_validated' => true,
@@ -120,6 +123,7 @@ class SQLInjectionAndXSSProtectionTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $targetUser */
         $targetUser = User::factory()->create(['role' => 'user', 'is_validated' => true, 'name' => 'Alice']);
 
         // La route model-binding doit ignorer l'injection dans la query string
@@ -134,9 +138,10 @@ class SQLInjectionAndXSSProtectionTest extends TestCase
      */
     public function test_waiting_list_display_escapes_xss(): void
     {
+        /** @var User $user */
         $user = User::factory()->create([
             'name' => '<b>Exploit</b>',
-            'lastname' => '"><script>alert(1)</script>',
+            'lastname' => '">< script>alert(1)</ script>',
             'is_validated' => true,
         ]);
 
@@ -206,7 +211,7 @@ class SQLInjectionAndXSSProtectionTest extends TestCase
 
         // Le mot de passe ne doit pas avoir changé
         $user->refresh();
-        $this->assertTrue(\Hash::check('CorrectPass123!', $user->password));
+        $this->assertTrue(Hash::check('CorrectPass123!', $user->password));
     }
 
     /**

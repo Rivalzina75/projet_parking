@@ -6,6 +6,7 @@ use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class AdminIntegrationTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
 
         $this->actingAs($admin)
@@ -34,6 +36,7 @@ class AdminIntegrationTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
 
         $this->actingAs($admin)
@@ -62,6 +65,7 @@ class AdminIntegrationTest extends TestCase
      */
     public function test_admin_can_view_settings_page(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
 
         $this->actingAs($admin)
@@ -75,6 +79,7 @@ class AdminIntegrationTest extends TestCase
      */
     public function test_admin_layout_renders_consent_modal_for_double_confirmation(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
 
         $this->actingAs($admin)
@@ -90,6 +95,7 @@ class AdminIntegrationTest extends TestCase
      */
     public function test_admin_has_single_sidebar_logout_button(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
 
         $this->actingAs($admin)
@@ -104,6 +110,7 @@ class AdminIntegrationTest extends TestCase
      */
     public function test_admin_can_enable_double_consent_setting(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
 
         $this->actingAs($admin)

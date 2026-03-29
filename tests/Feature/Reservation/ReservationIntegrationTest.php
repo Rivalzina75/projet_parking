@@ -20,6 +20,7 @@ class ReservationIntegrationTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
         $spotA = ParkingSpot::factory()->create();
         $spotB = ParkingSpot::factory()->create();
@@ -51,6 +52,7 @@ class ReservationIntegrationTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
         $reservation = Reservation::factory()->create(['user_id' => $user->id, 'ended_at' => null]);
 
@@ -67,7 +69,9 @@ class ReservationIntegrationTest extends TestCase
      */
     public function test_admin_can_remove_user_reservation_from_user_list_action(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
         $spot = ParkingSpot::factory()->create();
 
@@ -92,7 +96,9 @@ class ReservationIntegrationTest extends TestCase
      */
     public function test_admin_cannot_remove_user_reservation_when_user_has_no_active_spot(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
 
         $this->actingAs($admin)
@@ -110,6 +116,7 @@ class ReservationIntegrationTest extends TestCase
     {
         /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        /** @var User $otherUser */
         $otherUser = User::factory()->create(['role' => 'user', 'is_validated' => true]);
         $spot = ParkingSpot::factory()->create();
 
@@ -143,7 +150,9 @@ class ReservationIntegrationTest extends TestCase
      */
     public function test_admin_force_assign_uses_admin_wording_when_target_has_active_reservation(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
         $spot = ParkingSpot::factory()->create();
 
@@ -171,6 +180,7 @@ class ReservationIntegrationTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => false]);
         $spot = ParkingSpot::factory()->create();
 
@@ -229,7 +239,9 @@ class ReservationIntegrationTest extends TestCase
      */
     public function test_admin_remove_reservation_action_can_remove_user_from_waiting_list(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
 
         WaitingListEntry::factory()->create([

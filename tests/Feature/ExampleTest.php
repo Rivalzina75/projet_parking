@@ -33,6 +33,7 @@ class ExampleTest extends TestCase
      */
     public function test_home_for_authenticated_user_shows_welcome_and_dashboard_link(): void
     {
+        /** @var \App\Models\User $user */
         $user = \App\Models\User::factory()->create([
             'role' => 'user',
             'is_validated' => true,

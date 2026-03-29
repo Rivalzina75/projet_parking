@@ -100,6 +100,7 @@ class UserControllerTest extends TestCase
      */
     public function test_user_dashboard_contains_sidebar_logout_and_consent_attributes(): void
     {
+        /** @var User $user */
         $user = User::factory()->create([
             'is_validated' => true,
             'role' => 'user',

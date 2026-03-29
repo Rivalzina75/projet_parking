@@ -35,6 +35,7 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_can_create_user_account(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
@@ -62,6 +63,7 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_user_list_is_paginated_by_ten_with_page_navigation(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
@@ -105,6 +107,7 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_user_list_only_shows_role_user_accounts(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'name' => 'Super',
             'lastname' => 'Admin',
@@ -113,6 +116,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $user */
         $user = User::factory()->create([
             'name' => 'Jean',
             'lastname' => 'Dupont',
@@ -158,6 +162,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $user */
         $user = User::factory()->create([
             'role' => 'user',
             'is_validated' => false,
@@ -195,6 +200,7 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_places_list_is_paginated_by_ten_with_page_navigation(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
@@ -324,6 +330,7 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_waiting_list_is_paginated_by_ten_with_page_navigation(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
@@ -373,6 +380,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $waitingUser */
         $waitingUser = User::factory()->create([
             'role' => 'user',
             'is_validated' => true,
@@ -405,8 +413,11 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $user1 */
         $user1 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        /** @var User $user2 */
         $user2 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        /** @var User $user3 */
         $user3 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
 
         $entry1 = WaitingListEntry::factory()->create(['user_id' => $user1->id, 'position' => 1]);
@@ -439,6 +450,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $user */
         $user = User::factory()->create([
             'role' => 'user',
             'is_validated' => true,
@@ -469,6 +481,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $user */
         $user = User::factory()->create([
             'role' => 'user',
             'is_validated' => true,
@@ -494,6 +507,7 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_places_page_exposes_users_for_live_manual_assignment_search(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
@@ -501,6 +515,7 @@ class AdminControllerTest extends TestCase
 
         ParkingSpot::factory()->create(['number' => 'A-1']);
 
+        /** @var User $match */
         $match = User::factory()->create([
             'name' => 'Martin',
             'lastname' => 'Dupond',
@@ -508,6 +523,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $other */
         $other = User::factory()->create([
             'name' => 'Claire',
             'lastname' => 'Bernard',
@@ -527,13 +543,16 @@ class AdminControllerTest extends TestCase
      */
     public function test_admin_can_view_full_history_for_a_spot(): void
     {
+        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
         ]);
 
         $spot = ParkingSpot::factory()->create(['number' => 'B-12']);
+        /** @var User $user1 */
         $user1 = User::factory()->create(['role' => 'user', 'is_validated' => true, 'name' => 'Luc']);
+        /** @var User $user2 */
         $user2 = User::factory()->create(['role' => 'user', 'is_validated' => true, 'name' => 'Nina']);
 
         Reservation::factory()->closed()->create([
@@ -566,6 +585,7 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $user */
         $user = User::factory()->create([
             'role' => 'user',
             'is_validated' => false,
@@ -598,11 +618,13 @@ class AdminControllerTest extends TestCase
             'is_validated' => true,
         ]);
 
+        /** @var User $occupiedBy */
         $occupiedBy = User::factory()->create([
             'role' => 'user',
             'is_validated' => true,
         ]);
 
+        /** @var User $targetUser */
         $targetUser = User::factory()->create([
             'role' => 'user',
             'is_validated' => true,

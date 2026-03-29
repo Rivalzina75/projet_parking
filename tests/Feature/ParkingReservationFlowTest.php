@@ -79,6 +79,7 @@ class ParkingReservationFlowTest extends TestCase
     {
         /** @var User $admin */
         $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        /** @var User $user */
         $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
         $spot = ParkingSpot::factory()->create();
 
@@ -99,6 +100,7 @@ class ParkingReservationFlowTest extends TestCase
      */
     public function test_reservation_expiration_uses_default_duration(): void
     {
+        /** @var User $user */
         $user = User::factory()->create(['is_validated' => true, 'role' => 'user']);
         ParkingSpot::factory()->create();
 

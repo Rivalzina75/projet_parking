@@ -1,42 +1,68 @@
 @extends('layouts.app')
 
-@section('title', 'Mon profil')
+@section('title', 'Mon profil — ParkingPro')
 
 @section('content')
-<div class="panel page-panel">
+<div class="page-panel">
     @include('partials.sidebar_user', ['active' => 'profil'])
 
     <div class="page-body">
-        <div style="font-size:15px;font-weight:500;margin-bottom:18px;">Mon profil</div>
+        <div class="section-header mb-6">
+            <div class="section-title">Mon profil</div>
+        </div>
 
-        <div style="padding:14px 16px;background:var(--slate-100);border-radius:8px;margin-bottom:20px;">
-            <div style="font-size:11px;color:var(--slate-500);font-weight:500;margin-bottom:10px;letter-spacing:0.4px;">INFORMATIONS DU COMPTE</div>
-            @foreach([['Nom', $user->lastname], ['Prénom', $user->name], ['Email', $user->email], ['Rôle', ucfirst($user->role)]] as [$label, $value])
-                <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--slate-200);font-size:13px;">
-                    <span class="muted">{{ $label }}</span>
-                    <span>{{ $value }}</span>
+        {{-- Infos compte --}}
+        <div class="card mb-6">
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; color:var(--text-3); margin-bottom:14px;">
+                Informations du compte
+            </div>
+
+            @foreach([
+                ['Prénom', $user->name],
+                ['Nom', $user->lastname],
+                ['Adresse email', $user->email],
+                ['Rôle', ucfirst($user->role)],
+            ] as [$label, $value])
+                <div class="flex justify-between items-center"
+                     style="padding:9px 0; border-bottom:1px solid var(--border); font-size:13.5px;">
+                    <span style="color:var(--text-3); font-weight:500;">{{ $label }}</span>
+                    <span style="font-weight:600;">{{ $value }}</span>
                 </div>
             @endforeach
         </div>
 
-        <div style="font-size:13px;font-weight:500;margin-bottom:12px;">Changer le mot de passe</div>
-        <form method="POST" action="{{ route('user.password.update') }}" class="form-grid auth-form" style="max-width:380px;">
-            @csrf
+        {{-- Changer mdp --}}
+        <div style="font-size:15px; font-weight:700; letter-spacing:-0.2px; margin-bottom:16px;">
+            Changer le mot de passe
+        </div>
 
-            <label>Mot de passe actuel
-                <input type="password" name="current_password" required>
-            </label>
+        <div class="card" style="max-width:400px;">
+            <form method="POST" action="{{ route('user.password.update') }}" class="form-grid">
+                @csrf
 
-            <label>Nouveau mot de passe
-                <input type="password" name="password" required>
-            </label>
+                <div class="form-group">
+                    <label for="current_password">Mot de passe actuel</label>
+                    <input type="password" id="current_password" name="current_password"
+                           required placeholder="••••••••••">
+                </div>
 
-            <label>Confirmer le nouveau mot de passe
-                <input type="password" name="password_confirmation" required>
-            </label>
+                <div class="form-group">
+                    <label for="password">Nouveau mot de passe</label>
+                    <input type="password" id="password" name="password"
+                           required placeholder="Min. 10 car., maj., chiffre, symbole">
+                </div>
 
-            <button type="submit" class="btn" style="background:#3B6D11;color:white;border-color:transparent;">Enregistrer</button>
-        </form>
+                <div class="form-group">
+                    <label for="password_confirmation">Confirmer le nouveau mot de passe</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation"
+                           required placeholder="Répétez le nouveau mot de passe">
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width:fit-content;">
+                    Enregistrer le nouveau mot de passe
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 @endsection

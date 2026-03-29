@@ -42,6 +42,7 @@ class AdminIntegrationTest extends TestCase
 
     /**
      * Test que les settings admin fonctionnent.
+     * BUGFIX: la clé correcte est 'default_reservation_hours' (pas 'default_duration_hours').
      */
     public function test_admin_can_update_settings(): void
     {
@@ -50,13 +51,14 @@ class AdminIntegrationTest extends TestCase
 
         $this->actingAs($admin)
             ->post('/admin/settings', [
-                'default_duration_hours' => '72',
+                'default_reservation_hours' => '72',
             ])
             ->assertStatus(302);
     }
 
     /**
      * Test que modifier la durée par défaut affecte les futures réservations.
+     * BUGFIX: clé corrigée 'default_reservation_hours'.
      */
     public function test_changing_default_duration_affects_new_reservations(): void
     {
@@ -79,12 +81,12 @@ class AdminIntegrationTest extends TestCase
             ->post('/admin/settings', ['default_reservation_hours' => '72'])
             ->assertRedirect();
 
-        // Deuxième réservation avec nouvelle durée
-        // (On ferme la première pour que user2 puisse réserver)
+        // Fermer la première réservation
         $this->actingAs($user1)
             ->post("/utilisateur/reservation/{$reservation1->id}/close")
             ->assertRedirect();
 
+        // Deuxième réservation avec nouvelle durée
         $this->actingAs($user2)->post('/utilisateur/reservation')->assertRedirect();
         $reservation2 = Reservation::where('user_id', $user2->id)->first();
         $duration2 = (int) abs($reservation2->expires_at->diffInHours($reservation2->starts_at));

@@ -1,45 +1,70 @@
 @extends('layouts.app')
 
-@section('title', "Admin - Liste d'attente")
+@section('title', "File d'attente — Admin")
 
 @section('content')
-<div class="panel page-panel">
+<div class="page-panel">
     @include('partials.sidebar_admin', ['active' => 'waiting'])
 
     <div class="page-body">
-        <div style="font-size:15px;font-weight:500;margin-bottom:4px;">Liste d'attente</div>
-        <p class="muted" style="font-size:12px;margin-bottom:18px;">{{ $waiting->count() }} utilisateur(s) en attente · Réorganisez les positions.</p>
+        <div class="section-header mb-6">
+            <div>
+                <div class="section-title">File d'attente</div>
+                <div class="section-sub">
+                    {{ $waiting->count() }} utilisateur(s) en attente · Les positions sont attribuées par ordre d'arrivée
+                </div>
+            </div>
+        </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Position</th>
-                    <th>Utilisateur</th>
-                    <th>Email</th>
-                    <th>En attente depuis</th>
-                    <th>Changer position</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($waiting as $entry)
-                    <tr>
-                        <td><span class="status-badge pending">#{{ $entry->position }}</span></td>
-                        <td><strong>{{ $entry->user->name }} {{ $entry->user->lastname }}</strong></td>
-                        <td class="muted">{{ $entry->user->email }}</td>
-                        <td class="muted" style="font-size:12px;">{{ $entry->created_at->format('d/m/Y H:i') }}</td>
-                        <td>
-                            <form method="POST" action="{{ route('admin.waiting.move', $entry) }}" class="row gap">
-                                @csrf
-                                <input type="number" min="1" name="position" value="{{ $entry->position }}" required style="width:60px;font-size:12px;padding:4px 8px;">
-                                <button class="btn" type="submit" style="font-size:12px;padding:4px 9px;">Mettre à jour</button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5" class="muted" style="text-align:center;padding:24px;">Aucun utilisateur en attente.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        @if($waiting->isEmpty())
+            <div class="card text-center" style="padding:48px; color:var(--text-3);">
+                <div style="font-size:32px; margin-bottom:12px;">🎉</div>
+                <div style="font-weight:600; font-size:15px; color:var(--text-2);">File d'attente vide</div>
+                <div class="text-sm muted mt-2">Tous les utilisateurs ont une place attribuée.</div>
+            </div>
+        @else
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Utilisateur</th>
+                            <th>Email</th>
+                            <th>En attente depuis</th>
+                            <th>Modifier la position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($waiting as $entry)
+                            <tr>
+                                <td>
+                                    <span class="badge badge-amber" style="font-size:13px; padding:4px 12px;">
+                                        #{{ $entry->position }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;">{{ $entry->user->name }} {{ $entry->user->lastname }}</div>
+                                </td>
+                                <td class="muted text-sm">{{ $entry->user->email }}</td>
+                                <td class="muted text-sm">{{ $entry->created_at->format('d/m/Y à H:i') }}</td>
+                                <td>
+                                    <form method="POST" action="{{ route('admin.waiting.move', $entry) }}"
+                                          class="inline-form">
+                                        @csrf
+                                        <input type="number" min="1" name="position"
+                                               value="{{ $entry->position }}" required
+                                               style="width:65px; font-size:12px; padding:4px 8px;">
+                                        <button class="btn btn-sm" type="submit">
+                                            Mettre à jour
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

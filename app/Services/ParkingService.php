@@ -34,6 +34,8 @@ class ParkingService
             $duration = $this->defaultDurationHours();
             $now = now();
 
+            // Si durée = 0, la réservation est INFINIE (expires_at = null)
+            // Si durée > 0, la réservation expire après X heures
             Reservation::create([
                 'user_id' => $user->id,
                 'parking_spot_id' => $spot->id,
@@ -81,6 +83,8 @@ class ParkingService
             $duration = $this->defaultDurationHours();
             $now = now();
 
+            // Si durée = 0, la réservation est INFINIE (expires_at = null)
+            // Si durée > 0, la réservation expire après X heures
             Reservation::create([
                 'user_id' => $user->id,
                 'parking_spot_id' => $availableSpot->id,
@@ -194,6 +198,10 @@ class ParkingService
     {
         return Reservation::where('user_id', $user->id)
             ->whereNull('ended_at')
+            // Une réservation est active si :
+            // - expires_at est NULL (réservation INFINIE, durée = 0)
+            // OU
+            // - expires_at > maintenant (pas encore expirée)
             ->where(function ($query) {
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());

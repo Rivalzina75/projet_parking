@@ -38,10 +38,10 @@
                     </h2>
                     <form method="POST" action="{{ route('admin.settings') }}" class="inline-form" aria-label="Formulaire de durée par défaut">
                         @csrf
-                        <label for="default-duration" class="sr-only">Durée en heures</label>
-                        <input type="number" id="default-duration" min="1" max="240" name="default_reservation_hours"
-                               value="{{ $defaultDuration }}" required style="width:90px;" aria-label="Durée par défaut en heures">
-                        <span class="muted text-sm">heures</span>
+                        <label for="default-duration" class="sr-only">Durée en heures (0 = infini)</label>
+                        <input type="number" id="default-duration" min="0" max="240" name="default_reservation_hours"
+                               value="{{ $defaultDuration }}" required style="width:90px;" aria-label="Durée par défaut en heures (0 = réservation infinie)">
+                        <span class="muted text-sm">heures (0 = infini)</span>
                         <button class="btn btn-sm" type="submit" data-requires-consent="true"
                                 data-consent-message="Confirmer la mise à jour de la durée par défaut des réservations ?">
                             Mettre à jour

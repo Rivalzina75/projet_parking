@@ -321,7 +321,7 @@ class AdminController extends Controller
     public function settings(Request $request)
     {
         $data = $request->validate([
-            'default_reservation_hours' => 'nullable|integer|min:1|max:240',
+            'default_reservation_hours' => 'nullable|integer|min:0|max:240',
             'double_consent_enabled' => 'nullable|boolean',
         ]);
 

@@ -126,6 +126,10 @@ class ParkingService
             $entries->splice($newPosition - 1, 0, [$entry]);
 
             foreach ($entries->values() as $index => $item) {
+                WaitingListEntry::whereKey($item->id)->update(['position' => 1000 + $index + 1]);
+            }
+
+            foreach ($entries->values() as $index => $item) {
                 WaitingListEntry::whereKey($item->id)->update(['position' => $index + 1]);
             }
         });

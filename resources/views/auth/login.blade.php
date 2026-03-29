@@ -3,8 +3,8 @@
 @section('title', 'Connexion — ParkingPro')
 
 @section('content')
-<div class="auth-wrap">
-    <div class="auth-brand">
+<div class="auth-wrap" role="region" aria-label="Formulaire de connexion">
+    <aside class="auth-brand" aria-hidden="true">
         <div class="auth-brand-logo">
             <div class="auth-brand-logo-mark">P</div>
             ParkingPro
@@ -13,33 +13,37 @@
         <div class="auth-brand-desc">
             Accédez à votre tableau de bord pour gérer votre place ou suivre votre position dans la file d'attente.
         </div>
-        <div class="auth-steps">
+        <nav class="auth-steps" aria-label="Étapes du processus de connexion">
             <div class="auth-step">
-                <div class="auth-step-dot">1</div>
+                <div class="auth-step-dot" aria-hidden="true">1</div>
                 <div class="auth-step-text">Connexion sécurisée par email et mot de passe</div>
             </div>
             <div class="auth-step">
-                <div class="auth-step-dot">2</div>
+                <div class="auth-step-dot" aria-hidden="true">2</div>
                 <div class="auth-step-text">Accès au tableau de bord selon votre rôle</div>
             </div>
             <div class="auth-step">
-                <div class="auth-step-dot">3</div>
+                <div class="auth-step-dot" aria-hidden="true">3</div>
                 <div class="auth-step-text">Gestion de vos réservations en temps réel</div>
             </div>
-        </div>
-    </div>
+        </nav>
+    </aside>
 
     <div class="auth-form-wrap">
-        <div class="auth-form-title">Connexion</div>
-        <div class="auth-form-sub">Entrez vos identifiants pour accéder à votre espace.</div>
+        <h1 class="auth-form-title">Connexion</h1>
+        <p class="auth-form-sub">Entrez vos identifiants pour accéder à votre espace.</p>
 
-        <form method="POST" action="{{ route('login.submit') }}" class="form-grid">
+        <form method="POST" action="{{ route('login.submit') }}" class="form-grid" role="form" aria-label="Formulaire de connexion">
             @csrf
 
             <div class="form-group">
                 <label for="email">Adresse email</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}" required
-                       placeholder="vous@entreprise.fr" autofocus>
+                       maxlength="255" placeholder="vous@entreprise.fr" autofocus
+                       aria-invalid="{{ $errors->has('email') }}">
+                @if($errors->has('email'))
+                    <span class="error-text" role="alert">{{ $errors->first('email') }}</span>
+                @endif
             </div>
 
             <div class="form-group">
@@ -47,7 +51,11 @@
                     <label for="password">Mot de passe</label>
                     <a href="{{ route('password.forgot') }}" style="font-size:12px; color:var(--blue); font-weight:600;">Mot de passe oublié ?</a>
                 </div>
-                <input type="password" id="password" name="password" required placeholder="••••••••••">
+                <input type="password" id="password" name="password" required placeholder="••••••••••"
+                       aria-invalid="{{ $errors->has('password') }}">
+                @if($errors->has('password'))
+                    <span class="error-text" role="alert">{{ $errors->first('password') }}</span>
+                @endif
             </div>
 
             <button type="submit" class="btn btn-primary w-full" style="justify-content:center; padding:11px;">

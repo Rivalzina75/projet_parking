@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
+use App\Models\WaitingListEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -176,6 +177,102 @@ class AdminControllerTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/liste-attente')
             ->assertStatus(200);
+    }
+
+    /**
+     * Test qu'un admin peut consulter le contenu de la liste d'attente.
+     */
+    public function test_admin_can_view_waiting_list_entries_content(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $waitingUser = User::factory()->create([
+            'role' => 'user',
+            'is_validated' => true,
+            'name' => 'Jean',
+            'lastname' => 'Martin',
+        ]);
+
+        WaitingListEntry::factory()->create([
+            'user_id' => $waitingUser->id,
+            'position' => 2,
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/liste-attente')
+            ->assertStatus(200)
+            ->assertViewIs('admin.waiting_list')
+            ->assertSee('Jean', false)
+            ->assertSee('Martin', false)
+            ->assertSee('#2', false);
+    }
+
+    /**
+     * Test qu'un admin peut modifier la position d'une personne en file d'attente.
+     */
+    public function test_admin_can_move_waiting_list_position(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $user1 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        $user2 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        $user3 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+
+        $entry1 = WaitingListEntry::factory()->create(['user_id' => $user1->id, 'position' => 1]);
+        $entry2 = WaitingListEntry::factory()->create(['user_id' => $user2->id, 'position' => 2]);
+        $entry3 = WaitingListEntry::factory()->create(['user_id' => $user3->id, 'position' => 3]);
+
+        $this->actingAs($admin)
+            ->post("/admin/liste-attente/{$entry3->id}/move", [
+                'position' => 1,
+            ])
+            ->assertStatus(302);
+
+        $entry1->refresh();
+        $entry2->refresh();
+        $entry3->refresh();
+
+        $this->assertSame(2, $entry1->position);
+        $this->assertSame(3, $entry2->position);
+        $this->assertSame(1, $entry3->position);
+    }
+
+    /**
+     * Test qu'un admin peut consulter l'historique d'attribution d'un utilisateur.
+     */
+    public function test_admin_can_view_user_allocation_history(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $spot = ParkingSpot::factory()->create(['number' => 'A-42']);
+
+        Reservation::factory()->closed()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get("/admin/utilisateurs/{$user->id}")
+            ->assertStatus(200)
+            ->assertViewIs('admin.user_instance')
+            ->assertSee('A-42', false);
     }
 
     /**

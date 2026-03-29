@@ -5,6 +5,7 @@ namespace Tests\Feature\Reservation;
 use App\Models\User;
 use App\Models\Reservation;
 use App\Models\ParkingSpot;
+use App\Models\WaitingListEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -118,5 +119,41 @@ class ReservationIntegrationTest extends TestCase
             'user_id' => $user->id,
             'parking_spot_id' => $spot->id,
         ]);
+    }
+
+    /**
+     * Test qu'après fermeture d'une réservation, le prochain utilisateur en attente reçoit la place.
+     */
+    public function test_next_waiting_user_gets_spot_after_close(): void
+    {
+        $spot = ParkingSpot::factory()->create();
+        /** @var User $user1 */
+        $user1 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        /** @var User $user2 */
+        $user2 = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        /** @var User $admin */
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+
+        // User1 réserve la seule place
+        $this->actingAs($user1)->post('/utilisateur/reservation')->assertRedirect();
+        $reservation1 = Reservation::where('user_id', $user1->id)->first();
+        $this->assertSame($spot->id, $reservation1->parking_spot_id);
+
+        // User2 est mis en attente (pas de place)
+        $this->actingAs($user2)->post('/utilisateur/reservation')->assertRedirect();
+        $this->assertDatabaseHas('waiting_list_entries', ['user_id' => $user2->id, 'position' => 1]);
+
+        // Admin ferme la réservation de user1
+        $this->actingAs($admin)
+            ->post("/admin/reservation/{$reservation1->id}/close")
+            ->assertRedirect();
+
+        // Vérifier que user2 a maintenant une réservation
+        $reservation2 = Reservation::where('user_id', $user2->id)->first();
+        $this->assertNotNull($reservation2);
+        $this->assertSame($spot->id, $reservation2->parking_spot_id);
+
+        // Vérifier que user2 n'est plus en attente
+        $this->assertDatabaseMissing('waiting_list_entries', ['user_id' => $user2->id]);
     }
 }

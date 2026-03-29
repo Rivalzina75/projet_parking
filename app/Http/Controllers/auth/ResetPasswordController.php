@@ -11,11 +11,17 @@ use Illuminate\Support\Str;
 
 class ResetPasswordController extends Controller
 {
+    /**
+     * Affiche le formulaire de demande de réinitialisation du mot de passe.
+     */
     public function showresetpassword()
     {
         return view('auth.reset_password');
     }
 
+    /**
+     * Génère un token de réinitialisation et affiche l'écran de confirmation.
+     */
     public function askResetPassword(Request $request)
     {
         $data = $request->validate([
@@ -38,6 +44,9 @@ class ResetPasswordController extends Controller
         ]);
     }
 
+    /**
+     * Vérifie le token puis applique le nouveau mot de passe utilisateur.
+     */
     public function resetPassword(Request $request)
     {
         $data = $request->validate([

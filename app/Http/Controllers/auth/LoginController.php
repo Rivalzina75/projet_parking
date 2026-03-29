@@ -8,11 +8,17 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    /**
+     * Affiche le formulaire de connexion.
+     */
     public function showlogin()
     {
         return view('auth.login');
     }
 
+    /**
+     * Authentifie l'utilisateur puis redirige selon son rôle et son statut de validation.
+     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -39,6 +45,9 @@ class LoginController extends Controller
         return redirect('/utilisateur/dashboard');
     }
 
+    /**
+     * Déconnecte l'utilisateur et invalide sa session.
+     */
     public function logout(Request $request)
     {
         Auth::logout();

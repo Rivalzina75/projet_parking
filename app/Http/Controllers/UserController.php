@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    /**
+     * Affiche le tableau de bord utilisateur avec réservation active, file d'attente et historique.
+     */
     public function dashboard(Request $request)
     {
         $user = $request->user();
@@ -30,11 +33,17 @@ class UserController extends Controller
         return view('user.dashboard', compact('activeReservation', 'waitingEntry', 'history'));
     }
 
+    /**
+     * Affiche la page de profil de l'utilisateur connecté.
+     */
     public function profil(Request $request)
     {
         return view('user.profil', ['user' => $request->user()]);
     }
 
+    /**
+     * Met à jour le mot de passe de l'utilisateur après vérification de l'ancien mot de passe.
+     */
     public function updatePassword(Request $request)
     {
         $data = $request->validate([

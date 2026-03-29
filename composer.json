@@ -3,7 +3,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -54,7 +57,9 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
-        ]
+        ],
+        "test:coverage": "./vendor/bin/sail php artisan test --coverage",
+        "test:coverage:html": "./vendor/bin/sail php artisan test --coverage-html storage/coverage"
     },
     "extra": {
         "laravel": {

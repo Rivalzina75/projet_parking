@@ -9,8 +9,14 @@ use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
+    /**
+     * Injecte le service métier responsable des réservations et attributions.
+     */
     public function __construct(private readonly ParkingService $parkingService) {}
 
+    /**
+     * Traite la demande de réservation de l'utilisateur connecté.
+     */
     public function requestReservation(Request $request)
     {
         $result = $this->parkingService->requestReservation($request->user());
@@ -22,6 +28,9 @@ class ReservationController extends Controller
         return back()->with('message', $result['message']);
     }
 
+    /**
+     * Clôture une réservation si l'utilisateur en est propriétaire ou administrateur.
+     */
     public function closeReservation(Request $request, Reservation $reservation)
     {
         if ($reservation->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
@@ -33,6 +42,9 @@ class ReservationController extends Controller
         return back()->with('message', 'Réservation clôturée.');
     }
 
+    /**
+     * Force une attribution de réservation pour un utilisateur depuis l'interface admin.
+     */
     public function forceAssign(Request $request)
     {
         $data = $request->validate([

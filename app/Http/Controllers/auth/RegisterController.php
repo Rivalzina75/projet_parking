@@ -11,11 +11,17 @@ use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
+    /**
+     * Affiche le formulaire d'inscription.
+     */
     public function showregister()
     {
         return view('auth.register');
     }
 
+    /**
+     * Valide les données puis crée un compte utilisateur en attente de validation admin.
+     */
     public function register(Request $request)
     {
         $request->validate([

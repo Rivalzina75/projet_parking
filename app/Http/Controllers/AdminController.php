@@ -15,8 +15,14 @@ use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
+    /**
+     * Injecte le service métier de gestion du parking.
+     */
     public function __construct(private readonly ParkingService $parkingService) {}
 
+    /**
+     * Affiche la liste des utilisateurs avec leur réservation active et leur position en file d'attente.
+     */
     public function users()
     {
         $users = User::orderBy('lastname')->orderBy('name')->get();
@@ -32,6 +38,9 @@ class AdminController extends Controller
         return view('admin.userlist', compact('users', 'activeReservationByUser', 'waitingByUser'));
     }
 
+    /**
+     * Affiche le détail d'un utilisateur, sa réservation active et son historique.
+     */
     public function userDetail(User $user)
     {
         $activeReservation = Reservation::with('parkingSpot')
@@ -49,6 +58,9 @@ class AdminController extends Controller
         return view('admin.user_instance', compact('user', 'activeReservation', 'history'));
     }
 
+    /**
+     * Valide le compte d'un utilisateur pour lui autoriser l'accès à l'application.
+     */
     public function validateUser(User $user)
     {
         $user->update(['is_validated' => true]);
@@ -56,6 +68,9 @@ class AdminController extends Controller
         return back()->with('message', 'Compte utilisateur validé.');
     }
 
+    /**
+     * Génère et applique un mot de passe temporaire pour un utilisateur.
+     */
     public function resetUserPassword(User $user)
     {
         $newPassword = Str::password(12);
@@ -67,6 +82,9 @@ class AdminController extends Controller
         return back()->with('message', 'Nouveau mot de passe temporaire : ' . $newPassword);
     }
 
+    /**
+     * Affiche la gestion des places avec les statistiques et réservations en cours.
+     */
     public function places()
     {
         $spots = ParkingSpot::orderBy('number')->get();
@@ -91,6 +109,9 @@ class AdminController extends Controller
         return view('admin.places', compact('spots', 'users', 'activeReservations', 'total', 'occupied', 'free', 'defaultDuration'));
     }
 
+    /**
+     * Attribue manuellement une place précise à un utilisateur valide.
+     */
     public function assignPlace(Request $request)
     {
         $data = $request->validate([
@@ -110,6 +131,9 @@ class AdminController extends Controller
         return back()->with('message', $result['message']);
     }
 
+    /**
+     * Crée une nouvelle place puis tente une attribution automatique au prochain utilisateur en attente.
+     */
     public function storePlace(Request $request)
     {
         $data = $request->validate([
@@ -124,6 +148,9 @@ class AdminController extends Controller
         return back()->with('message', 'Place ajoutée.');
     }
 
+    /**
+     * Met à jour les informations d'une place (numéro, localisation, état actif).
+     */
     public function updatePlace(Request $request, ParkingSpot $spot)
     {
         $data = $request->validate([
@@ -141,6 +168,9 @@ class AdminController extends Controller
         return back()->with('message', 'Place mise à jour.');
     }
 
+    /**
+     * Supprime une place uniquement si elle n'est pas actuellement occupée.
+     */
     public function deletePlace(ParkingSpot $spot)
     {
         $hasActiveReservation = Reservation::where('parking_spot_id', $spot->id)
@@ -159,6 +189,9 @@ class AdminController extends Controller
         return back()->with('message', 'Place supprimée.');
     }
 
+    /**
+     * Affiche la file d'attente des utilisateurs sans place.
+     */
     public function waitingList()
     {
         $waiting = WaitingListEntry::with('user')->orderBy('position')->get();
@@ -166,6 +199,9 @@ class AdminController extends Controller
         return view('admin.waiting_list', compact('waiting'));
     }
 
+    /**
+     * Déplace un utilisateur à une nouvelle position dans la file d'attente.
+     */
     public function moveWaiting(Request $request, WaitingListEntry $entry)
     {
         $data = $request->validate([
@@ -177,6 +213,9 @@ class AdminController extends Controller
         return back()->with('message', 'Position mise à jour.');
     }
 
+    /**
+     * Met à jour la durée par défaut des réservations dans les paramètres applicatifs.
+     */
     public function settings(Request $request)
     {
         $data = $request->validate([

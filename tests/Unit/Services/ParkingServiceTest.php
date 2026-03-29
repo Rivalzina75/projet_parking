@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\WaitingListEntry;
 use App\Services\ParkingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ParkingServiceTest extends TestCase
@@ -245,5 +246,91 @@ class ParkingServiceTest extends TestCase
         $this->assertNotNull($entry3);
         $this->assertSame(1, $entry2->position);
         $this->assertSame(2, $entry3->position);
+    }
+
+    /**
+     * Test que si la durée par défaut est 0, les réservations n'expirent jamais.
+     */
+    public function test_zero_duration_creates_permanent_reservations(): void
+    {
+        // Définir la durée à 0
+        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+
+        $user = User::factory()->create(['is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        $result = $this->parkingService->assignSpecificSpotToUser($user, $spot);
+
+        $this->assertSame('reserved', $result['status']);
+
+        $reservation = Reservation::where('user_id', $user->id)->first();
+        $this->assertNotNull($reservation);
+        $this->assertNull($reservation->expires_at);
+    }
+
+    /**
+     * Test qu'une place avec réservation sans expiration n'est jamais libérée automatiquement.
+     */
+    public function test_permanent_reservations_prevent_new_assignments(): void
+    {
+        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+
+        $user1 = User::factory()->create(['is_validated' => true]);
+        $user2 = User::factory()->create(['is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        // User1 réserve avec durée 0
+        $this->parkingService->assignSpecificSpotToUser($user1, $spot);
+
+        // Avancer le temps de 10 jours - la place ne doit pas être autolibérée
+        $this->travelTo(now()->addDays(10));
+
+        // User2 essaie de réserver - devrait échouer car la place est toujours occupée
+        $result = $this->parkingService->requestReservation($user2);
+
+        $this->assertSame('waiting', $result['status']);
+        $this->assertTrue(WaitingListEntry::where('user_id', $user2->id)->exists());
+    }
+
+    /**
+     * Test que l'admin peut toujours libérer une place avec réservation permanente.
+     */
+    public function test_admin_can_close_permanent_reservation(): void
+    {
+        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+
+        $admin = User::factory()->create(['is_validated' => true, 'role' => 'admin']);
+        $user = User::factory()->create(['is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        $this->parkingService->assignSpecificSpotToUser($user, $spot);
+        $reservation = Reservation::where('user_id', $user->id)->first();
+
+        // L'admin ferme la réservation
+        $this->parkingService->closeReservation($reservation, $admin->id);
+
+        $reservation->refresh();
+        $this->assertNotNull($reservation->ended_at);
+        $this->assertSame($admin->id, $reservation->closed_by);
+    }
+
+    /**
+     * Test que les utilisateurs peuvent toujours utiliser 'enlever résa' sur une réservation permanente.
+     */
+    public function test_user_can_abandon_permanent_reservation(): void
+    {
+        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+
+        $user = User::factory()->create(['is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        $this->parkingService->assignSpecificSpotToUser($user, $spot);
+        $reservation = Reservation::where('user_id', $user->id)->first();
+
+        // L'utilisateur abandonne sa place (user_id = null = anonymous)
+        $this->parkingService->closeReservation($reservation);
+
+        $reservation->refresh();
+        $this->assertNotNull($reservation->ended_at);
     }
 }

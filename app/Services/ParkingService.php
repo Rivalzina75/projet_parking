@@ -38,7 +38,7 @@ class ParkingService
                 'user_id' => $user->id,
                 'parking_spot_id' => $spot->id,
                 'starts_at' => $now,
-                'expires_at' => $now->copy()->addHours($duration),
+                'expires_at' => $duration > 0 ? $now->copy()->addHours($duration) : null,
                 'closed_by' => $closedBy,
                 'notes' => 'Attribution manuelle administrateur',
             ]);
@@ -85,7 +85,7 @@ class ParkingService
                 'user_id' => $user->id,
                 'parking_spot_id' => $availableSpot->id,
                 'starts_at' => $now,
-                'expires_at' => $now->copy()->addHours($duration),
+                'expires_at' => $duration > 0 ? $now->copy()->addHours($duration) : null,
             ]);
 
             return [
@@ -138,6 +138,7 @@ class ParkingService
     public function closeExpiredReservations(): void
     {
         $expired = Reservation::whereNull('ended_at')
+            ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now())
             ->get();
 
@@ -169,7 +170,7 @@ class ParkingService
                 'user_id' => $entry->user_id,
                 'parking_spot_id' => $availableSpot->id,
                 'starts_at' => $now,
-                'expires_at' => $now->copy()->addHours($duration),
+                'expires_at' => $duration > 0 ? $now->copy()->addHours($duration) : null,
                 'notes' => 'Attribuée depuis la file d’attente',
             ]);
 
@@ -193,7 +194,10 @@ class ParkingService
     {
         return Reservation::where('user_id', $user->id)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->exists();
     }
 
@@ -206,7 +210,10 @@ class ParkingService
     {
         return ! Reservation::where('parking_spot_id', $spotId)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->exists();
     }
 
@@ -217,7 +224,10 @@ class ParkingService
                 $query->select('parking_spot_id')
                     ->from('reservations')
                     ->whereNull('ended_at')
-                    ->where('expires_at', '>', now());
+                    ->where(function ($subQuery) {
+                        $subQuery->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now());
+                    });
             })
             ->inRandomOrder()
             ->first();

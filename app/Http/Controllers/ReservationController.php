@@ -94,7 +94,10 @@ class ReservationController extends Controller
 
         $activeReservation = Reservation::where('user_id', $user->id)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->latest('starts_at')
             ->first();
 

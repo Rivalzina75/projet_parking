@@ -19,7 +19,10 @@ class UserController extends Controller
         $activeReservation = Reservation::with('parkingSpot')
             ->where('user_id', $user->id)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->first();
 
         $waitingEntry = WaitingListEntry::where('user_id', $user->id)->first();

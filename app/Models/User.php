@@ -43,7 +43,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Reservation::class)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now());
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            });
     }
 
     public function getFullNameAttribute(): string

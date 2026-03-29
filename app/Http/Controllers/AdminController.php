@@ -36,7 +36,10 @@ class AdminController extends Controller
         $activeReservationByUser = Reservation::with('parkingSpot')
             ->whereIn('user_id', $userIds)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->get()
             ->keyBy('user_id');
 
@@ -84,7 +87,10 @@ class AdminController extends Controller
         $activeReservation = Reservation::with('parkingSpot')
             ->where('user_id', $user->id)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->first();
 
         $history = Reservation::with('parkingSpot')
@@ -142,13 +148,19 @@ class AdminController extends Controller
         $activeReservations = Reservation::with('user')
             ->whereIn('parking_spot_id', $spotIds)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->get()
             ->keyBy('parking_spot_id');
 
         $total = ParkingSpot::count();
         $occupied = Reservation::whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->count();
         $free = max(0, $total - $occupied);
         $defaultDuration = (int) (DB::table('app_settings')->value('default_reservation_hours') ?? 8);
@@ -259,7 +271,10 @@ class AdminController extends Controller
     {
         $hasActiveReservation = Reservation::where('parking_spot_id', $spot->id)
             ->whereNull('ended_at')
-            ->where('expires_at', '>', now())
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->exists();
 
         if ($hasActiveReservation) {

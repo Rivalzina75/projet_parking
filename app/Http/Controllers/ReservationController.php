@@ -9,9 +9,7 @@ use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
-    public function __construct(private readonly ParkingService $parkingService)
-    {
-    }
+    public function __construct(private readonly ParkingService $parkingService) {}
 
     public function requestReservation(Request $request)
     {
@@ -48,6 +46,6 @@ class ReservationController extends Controller
             return back()->withErrors(['reservation' => $result['message']]);
         }
 
-        return back()->with('message', 'Attribution forcée traitée. '.$result['message']);
+        return back()->with('message', 'Attribution forcée traitée. ' . $result['message']);
     }
 }

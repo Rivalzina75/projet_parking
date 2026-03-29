@@ -15,9 +15,7 @@ use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
-    public function __construct(private readonly ParkingService $parkingService)
-    {
-    }
+    public function __construct(private readonly ParkingService $parkingService) {}
 
     public function users()
     {
@@ -66,7 +64,7 @@ class AdminController extends Controller
             'password' => Hash::make($newPassword),
         ]);
 
-        return back()->with('message', 'Nouveau mot de passe temporaire : '.$newPassword);
+        return back()->with('message', 'Nouveau mot de passe temporaire : ' . $newPassword);
     }
 
     public function places()
@@ -129,7 +127,7 @@ class AdminController extends Controller
     public function updatePlace(Request $request, ParkingSpot $spot)
     {
         $data = $request->validate([
-            'number' => 'required|string|max:30|unique:parking_spots,number,'.$spot->id,
+            'number' => 'required|string|max:30|unique:parking_spots,number,' . $spot->id,
             'location' => 'nullable|string|max:255',
             'is_active' => 'nullable|boolean',
         ]);

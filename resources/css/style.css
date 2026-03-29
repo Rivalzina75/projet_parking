@@ -156,7 +156,8 @@ p {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.card, .panel {
+.card,
+.panel {
     background: var(--white);
     border: 1px solid var(--slate-200);
     border-radius: 14px;
@@ -186,7 +187,8 @@ p {
     font-weight: 500;
 }
 
-input, button {
+input,
+button {
     font: inherit;
 }
 
@@ -267,7 +269,8 @@ table {
     overflow: hidden;
 }
 
-th, td {
+th,
+td {
     border-top: 1px solid var(--slate-200);
     padding: 11px 10px;
     text-align: left;
@@ -418,6 +421,7 @@ tbody tr:hover {
 }
 
 @media (max-width: 900px) {
+
     .hero-grid,
     .auth-shell {
         grid-template-columns: 1fr;
@@ -454,7 +458,8 @@ tbody tr:hover {
         padding: 12px 0;
     }
 
-    th, td {
+    th,
+    td {
         font-size: 14px;
     }
 }

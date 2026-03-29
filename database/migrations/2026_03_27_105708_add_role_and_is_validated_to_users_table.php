@@ -16,12 +16,12 @@ return new class extends Migration
             if (! Schema::hasColumn('users', 'lastname')) {
                 $table->string('lastname')->default('')->after('name');
             }
-            
+
             // Ajouter role après password
             if (! Schema::hasColumn('users', 'role')) {
                 $table->string('role')->default('user')->after('password');
             }
-            
+
             // Ajouter is_validated après role
             if (! Schema::hasColumn('users', 'is_validated')) {
                 $table->boolean('is_validated')->default(false)->after('role');

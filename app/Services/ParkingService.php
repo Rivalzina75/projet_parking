@@ -121,7 +121,7 @@ class ParkingService
                 return;
             }
 
-            $entries = $entries->reject(fn ($item) => $item->id === $entryId)->values();
+            $entries = $entries->reject(fn($item) => $item->id === $entryId)->values();
             $newPosition = max(1, min($newPosition, $entries->count() + 1));
             $entries->splice($newPosition - 1, 0, [$entry]);
 

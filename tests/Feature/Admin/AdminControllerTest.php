@@ -19,7 +19,6 @@ class AdminControllerTest extends TestCase
     public function test_admin_can_view_user_list(): void
     {
         /** @var User $admin */
-        /** @var User $admin */
         $admin = User::factory()->create([
             'role' => 'admin',
             'is_validated' => true,
@@ -29,6 +28,107 @@ class AdminControllerTest extends TestCase
             ->get('/admin/utilisateurs')
             ->assertStatus(200)
             ->assertViewIs('admin.userlist');
+    }
+
+    /**
+     * Test qu'un admin peut créer un compte utilisateur membre de la ligue.
+     */
+    public function test_admin_can_create_user_account(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/admin/utilisateurs', [
+                'name' => 'Oceane',
+                'lastname' => 'Martin',
+                'email' => 'oceane.martin@example.com',
+                'password' => 'PasswordStrong123!',
+                'password_confirmation' => 'PasswordStrong123!',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'oceane.martin@example.com',
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+    }
+
+    /**
+     * Test que la liste des utilisateurs admin est paginée à 10 et navigable par numéro de page.
+     */
+    public function test_admin_user_list_is_paginated_by_ten_with_page_navigation(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        for ($index = 1; $index <= 15; $index++) {
+            User::factory()->create([
+                'role' => 'user',
+                'is_validated' => true,
+                'name' => 'User' . str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+                'lastname' => 'Test' . str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+                'email' => "user{$index}@example.com",
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get('/admin/utilisateurs')
+            ->assertStatus(200)
+            ->assertSee('id="users-page-input"', false)
+            ->assertSee('name="page"', false)
+            ->assertViewHas('users', function ($users) {
+                return $users->perPage() === 10
+                    && $users->currentPage() === 1
+                    && $users->lastPage() === 2
+                    && $users->count() === 10;
+            });
+
+        $this->actingAs($admin)
+            ->get('/admin/utilisateurs?page=2')
+            ->assertStatus(200)
+            ->assertViewHas('users', function ($users) {
+                return $users->perPage() === 10
+                    && $users->currentPage() === 2
+                    && $users->lastPage() === 2
+                    && $users->count() === 5;
+            });
+    }
+
+    /**
+     * Test que la liste admin des utilisateurs affiche uniquement les comptes role=user.
+     */
+    public function test_admin_user_list_only_shows_role_user_accounts(): void
+    {
+        $admin = User::factory()->create([
+            'name' => 'Super',
+            'lastname' => 'Admin',
+            'email' => 'admin@example.com',
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $user = User::factory()->create([
+            'name' => 'Jean',
+            'lastname' => 'Dupont',
+            'email' => 'jean@example.com',
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/utilisateurs')
+            ->assertStatus(200)
+            ->assertSee($user->name, false)
+            ->assertSee($user->email, false)
+            ->assertDontSee('admin@example.com', false)
+            ->assertDontSee('Super Admin', false)
+            ->assertDontSee('Réinit. mdp', false);
     }
 
     /**
@@ -88,6 +188,46 @@ class AdminControllerTest extends TestCase
             ->get('/admin/places')
             ->assertStatus(200)
             ->assertViewIs('admin.places');
+    }
+
+    /**
+     * Test que la liste des places est paginée à 10 et navigable par numéro de page.
+     */
+    public function test_admin_places_list_is_paginated_by_ten_with_page_navigation(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        for ($index = 1; $index <= 15; $index++) {
+            ParkingSpot::factory()->create([
+                'number' => 'P-' . str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+                'location' => 'Bâtiment A',
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get('/admin/places')
+            ->assertStatus(200)
+            ->assertSee('id="places-page-input"', false)
+            ->assertSee('name="page"', false)
+            ->assertViewHas('spots', function ($spots) {
+                return $spots->perPage() === 10
+                    && $spots->currentPage() === 1
+                    && $spots->lastPage() === 2
+                    && $spots->count() === 10;
+            });
+
+        $this->actingAs($admin)
+            ->get('/admin/places?page=2')
+            ->assertStatus(200)
+            ->assertViewHas('spots', function ($spots) {
+                return $spots->perPage() === 10
+                    && $spots->currentPage() === 2
+                    && $spots->lastPage() === 2
+                    && $spots->count() === 5;
+            });
     }
 
     /**
@@ -177,6 +317,49 @@ class AdminControllerTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/liste-attente')
             ->assertStatus(200);
+    }
+
+    /**
+     * Test que la file d'attente admin est paginée à 10 et dispose du saut par numéro de page.
+     */
+    public function test_admin_waiting_list_is_paginated_by_ten_with_page_navigation(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        for ($index = 1; $index <= 15; $index++) {
+            $user = User::factory()->create([
+                'role' => 'user',
+                'is_validated' => true,
+                'email' => "waiting{$index}@example.com",
+            ]);
+
+            WaitingListEntry::factory()->create([
+                'user_id' => $user->id,
+                'position' => $index,
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get('/admin/liste-attente')
+            ->assertStatus(200)
+            ->assertSee('id="waiting-page-input"', false)
+            ->assertViewHas('waiting', function ($waiting) {
+                return $waiting->perPage() === 10
+                    && $waiting->currentPage() === 1
+                    && $waiting->lastPage() === 2
+                    && $waiting->count() === 10;
+            });
+
+        $this->actingAs($admin)
+            ->get('/admin/liste-attente?page=2')
+            ->assertStatus(200)
+            ->assertViewHas('waiting', function ($waiting) {
+                return $waiting->currentPage() === 2
+                    && $waiting->count() === 5;
+            });
     }
 
     /**
@@ -304,6 +487,72 @@ class AdminControllerTest extends TestCase
             'user_id' => $user->id,
             'parking_spot_id' => $spot->id,
         ]);
+    }
+
+    /**
+     * Test que la page places expose bien les utilisateurs pour un filtrage instantané côté front.
+     */
+    public function test_admin_places_page_exposes_users_for_live_manual_assignment_search(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        ParkingSpot::factory()->create(['number' => 'A-1']);
+
+        $match = User::factory()->create([
+            'name' => 'Martin',
+            'lastname' => 'Dupond',
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $other = User::factory()->create([
+            'name' => 'Claire',
+            'lastname' => 'Bernard',
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/places')
+            ->assertStatus(200)
+            ->assertSee("{$match->name} {$match->lastname}", false)
+            ->assertSee("{$other->name} {$other->lastname}", false);
+    }
+
+    /**
+     * Test qu'un admin peut consulter l'historique complet d'une place.
+     */
+    public function test_admin_can_view_full_history_for_a_spot(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $spot = ParkingSpot::factory()->create(['number' => 'B-12']);
+        $user1 = User::factory()->create(['role' => 'user', 'is_validated' => true, 'name' => 'Luc']);
+        $user2 = User::factory()->create(['role' => 'user', 'is_validated' => true, 'name' => 'Nina']);
+
+        Reservation::factory()->closed()->create([
+            'user_id' => $user1->id,
+            'parking_spot_id' => $spot->id,
+        ]);
+
+        Reservation::factory()->closed()->create([
+            'user_id' => $user2->id,
+            'parking_spot_id' => $spot->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get("/admin/places/{$spot->id}/historique")
+            ->assertStatus(200)
+            ->assertViewIs('admin.spot_history')
+            ->assertSee('B-12', false)
+            ->assertSee('Luc', false)
+            ->assertSee('Nina', false);
     }
 
     /**

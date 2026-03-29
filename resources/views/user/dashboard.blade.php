@@ -41,7 +41,8 @@
             <form method="POST" action="{{ route('user.reservation.close', $activeReservation) }}"
                   style="margin-bottom:24px;" aria-label="Formulaire de libération de place">
                 @csrf
-                <button type="submit" class="btn btn-danger btn-sm">
+                <button type="submit" class="btn btn-danger btn-sm" data-requires-consent="true"
+                        data-consent-message="Êtes-vous sûr de vouloir libérer votre place {{ $activeReservation->parkingSpot->number }} ?">
                     Libérer ma place
                 </button>
             </form>
@@ -79,7 +80,8 @@
             <form method="POST" action="{{ route('user.reservation.request') }}"
                   style="margin-bottom:24px;" aria-label="Formulaire de demande de place">
                 @csrf
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" data-requires-consent="true"
+                        data-consent-message="Êtes-vous sûr de vouloir demander une place ?">
                     Demander une place
                 </button>
             </form>
@@ -93,6 +95,7 @@
                 <h2 class="section-title">Historique des attributions</h2>
                 <p class="section-sub">Vos {{ count($history) }} dernières réservations</p>
             </div>
+            <a href="{{ route('user.history') }}" class="btn btn-sm">Voir tout l'historique</a>
         </div>
 
         <div class="table-wrap" role="region" aria-label="Tableau d'historique">

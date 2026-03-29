@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -54,6 +55,65 @@ class AdminIntegrationTest extends TestCase
                 'default_reservation_hours' => '72',
             ])
             ->assertStatus(302);
+    }
+
+    /**
+     * Test qu'un admin peut accéder à la page paramètres.
+     */
+    public function test_admin_can_view_settings_page(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+
+        $this->actingAs($admin)
+            ->get('/admin/parametres')
+            ->assertStatus(200)
+            ->assertViewIs('admin.settings');
+    }
+
+    /**
+     * Test que l'interface admin rend la modale de consentement UX.
+     */
+    public function test_admin_layout_renders_consent_modal_for_double_confirmation(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+
+        $this->actingAs($admin)
+            ->get('/admin/utilisateurs')
+            ->assertStatus(200)
+            ->assertSee('id="consent-modal"', false)
+            ->assertSee('id="consent-confirm"', false)
+            ->assertSee('id="consent-cancel"', false);
+    }
+
+    /**
+     * Test qu'il n'y a qu'une déconnexion côté admin (dans la sidebar) et pas dans le header.
+     */
+    public function test_admin_has_single_sidebar_logout_button(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+
+        $this->actingAs($admin)
+            ->get('/admin/utilisateurs')
+            ->assertStatus(200)
+            ->assertSee('class="sb-logout"', false)
+            ->assertDontSee('class="logout-form"', false);
+    }
+
+    /**
+     * Test qu'un admin peut activer le double consentement.
+     */
+    public function test_admin_can_enable_double_consent_setting(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+
+        $this->actingAs($admin)
+            ->post('/admin/settings', [
+                'settings_toggle' => '1',
+                'double_consent_enabled' => '1',
+            ])
+            ->assertStatus(302);
+
+        $this->assertTrue((bool) DB::table('app_settings')->value('double_consent_enabled'));
     }
 
     /**

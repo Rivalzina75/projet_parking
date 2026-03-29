@@ -17,7 +17,7 @@ class ParkingService
         }
 
         if ($this->hasActiveReservation($user)) {
-            return ['status' => 'error', 'message' => 'Cet utilisateur a déjà une réservation active.'];
+            return ['status' => 'error', 'message' => 'L\'utilisateur a déjà une réservation active.'];
         }
 
         if (! $spot->is_active) {

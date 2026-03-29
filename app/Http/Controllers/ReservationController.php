@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\ParkingSpot;
 use App\Models\User;
+use App\Models\WaitingListEntry;
 use App\Services\ParkingService;
 use Illuminate\Http\Request;
 
@@ -65,10 +66,66 @@ class ReservationController extends Controller
             $result = $this->parkingService->requestReservation($user);
         }
 
+        if ($request->user()->role === 'admin') {
+            $result['message'] = $this->adaptMessageForAdmin($result['message']);
+        }
+
         if ($result['status'] === 'error') {
             return back()->withErrors(['reservation' => $result['message']]);
         }
 
         return back()->with('message', 'Attribution forcée traitée. ' . $result['message']);
+    }
+
+    /**
+     * Retire la place active d'un utilisateur ciblé depuis l'interface admin.
+     */
+    public function removeAssign(Request $request)
+    {
+        $data = $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = User::findOrFail($data['user_id']);
+
+        if ($user->role !== 'user') {
+            return back()->withErrors(['reservation_remove' => 'Seuls les utilisateurs standard peuvent être concernés par cette action.']);
+        }
+
+        $activeReservation = Reservation::where('user_id', $user->id)
+            ->whereNull('ended_at')
+            ->where('expires_at', '>', now())
+            ->latest('starts_at')
+            ->first();
+
+        if (! $activeReservation) {
+            $waitingEntry = WaitingListEntry::where('user_id', $user->id)->first();
+
+            if (! $waitingEntry) {
+                return back()->withErrors(['reservation_remove' => "Vous ne pouvez pas enlever de place à un utilisateur qui n'en a pas."]);
+            }
+
+            $waitingEntry->delete();
+            $this->parkingService->reorderWaitingList();
+
+            return back()->with('message', 'Utilisateur retiré de la file d’attente avec succès.');
+        }
+
+        $this->parkingService->closeReservation($activeReservation, $request->user()->id);
+
+        return back()->with('message', 'Place retirée avec succès.');
+    }
+
+    private function adaptMessageForAdmin(string $message): string
+    {
+        if ($message === 'Vous avez déjà une réservation active.') {
+            return 'L\'utilisateur a déjà une réservation active.';
+        }
+
+        if ($message === 'Vous êtes déjà en file d’attente.') {
+            return 'L\'utilisateur est déjà en file d\'attente.';
+        }
+
+        return $message;
     }
 }

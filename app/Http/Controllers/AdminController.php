@@ -25,17 +25,51 @@ class AdminController extends Controller
      */
     public function users()
     {
-        $users = User::orderBy('lastname')->orderBy('name')->get();
+        $users = User::where('role', 'user')
+            ->orderBy('lastname')
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
+
+        $userIds = $users->getCollection()->pluck('id');
 
         $activeReservationByUser = Reservation::with('parkingSpot')
+            ->whereIn('user_id', $userIds)
             ->whereNull('ended_at')
             ->where('expires_at', '>', now())
             ->get()
             ->keyBy('user_id');
 
-        $waitingByUser = WaitingListEntry::orderBy('position')->get()->keyBy('user_id');
+        $waitingByUser = WaitingListEntry::whereIn('user_id', $userIds)
+            ->orderBy('position')
+            ->get()
+            ->keyBy('user_id');
 
         return view('admin.userlist', compact('users', 'activeReservationByUser', 'waitingByUser'));
+    }
+
+    /**
+     * Permet à l'administrateur de créer un compte utilisateur membre de la ligue.
+     */
+    public function storeUser(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:30',
+            'lastname' => 'required|string|max:30',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:10|regex:/[a-z]/|regex:/[A-Z]/|regex:/[0-9]/|regex:/[^a-zA-Z0-9]/|confirmed',
+        ]);
+
+        User::create([
+            'name' => trim($data['name']),
+            'lastname' => trim($data['lastname']),
+            'email' => trim($data['email']),
+            'password' => Hash::make($data['password']),
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        return back()->with('message', 'Compte utilisateur créé et validé par administrateur.');
     }
 
     /**
@@ -43,6 +77,10 @@ class AdminController extends Controller
      */
     public function userDetail(User $user)
     {
+        if ($user->role !== 'user') {
+            abort(404);
+        }
+
         $activeReservation = Reservation::with('parkingSpot')
             ->where('user_id', $user->id)
             ->whereNull('ended_at')
@@ -87,7 +125,13 @@ class AdminController extends Controller
      */
     public function places()
     {
-        $spots = ParkingSpot::orderBy('number')->get();
+        $spots = ParkingSpot::orderBy('number')
+            ->paginate(10)
+            ->withQueryString();
+
+        $spotIds = $spots->getCollection()->pluck('id');
+
+        $allSpotsForAssign = ParkingSpot::orderBy('number')->get();
 
         $users = User::where('role', 'user')
             ->where('is_validated', true)
@@ -96,17 +140,53 @@ class AdminController extends Controller
             ->get();
 
         $activeReservations = Reservation::with('user')
+            ->whereIn('parking_spot_id', $spotIds)
             ->whereNull('ended_at')
             ->where('expires_at', '>', now())
             ->get()
             ->keyBy('parking_spot_id');
 
-        $total = $spots->count();
-        $occupied = $activeReservations->count();
+        $total = ParkingSpot::count();
+        $occupied = Reservation::whereNull('ended_at')
+            ->where('expires_at', '>', now())
+            ->count();
         $free = max(0, $total - $occupied);
         $defaultDuration = (int) (DB::table('app_settings')->value('default_reservation_hours') ?? 8);
 
-        return view('admin.places', compact('spots', 'users', 'activeReservations', 'total', 'occupied', 'free', 'defaultDuration'));
+        return view('admin.places', compact(
+            'spots',
+            'allSpotsForAssign',
+            'users',
+            'activeReservations',
+            'total',
+            'occupied',
+            'free',
+            'defaultDuration'
+        ));
+    }
+
+    /**
+     * Affiche la page dédiée aux paramètres administrateur.
+     */
+    public function settingsPage()
+    {
+        $defaultDuration = (int) (DB::table('app_settings')->value('default_reservation_hours') ?? 8);
+        $doubleConsentEnabled = (bool) (DB::table('app_settings')->value('double_consent_enabled') ?? false);
+
+        return view('admin.settings', compact('defaultDuration', 'doubleConsentEnabled'));
+    }
+
+    /**
+     * Affiche l'historique complet des réservations d'une place donnée.
+     */
+    public function spotHistory(ParkingSpot $spot)
+    {
+        $history = Reservation::with('user')
+            ->where('parking_spot_id', $spot->id)
+            ->orderByDesc('starts_at')
+            ->paginate(30);
+
+        return view('admin.spot_history', compact('spot', 'history'));
     }
 
     /**
@@ -121,6 +201,10 @@ class AdminController extends Controller
 
         $user = User::findOrFail($data['user_id']);
         $spot = ParkingSpot::findOrFail($data['spot_id']);
+
+        if ($user->role !== 'user') {
+            return back()->withErrors(['assign' => 'Seuls les utilisateurs standard peuvent recevoir une place.']);
+        }
 
         $result = $this->parkingService->assignSpecificSpotToUser($user, $spot, Auth::id());
 
@@ -194,7 +278,10 @@ class AdminController extends Controller
      */
     public function waitingList()
     {
-        $waiting = WaitingListEntry::with('user')->orderBy('position')->get();
+        $waiting = WaitingListEntry::with('user')
+            ->orderBy('position')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.waiting_list', compact('waiting'));
     }
@@ -219,14 +306,45 @@ class AdminController extends Controller
     public function settings(Request $request)
     {
         $data = $request->validate([
-            'default_reservation_hours' => 'required|integer|min:1|max:240',
+            'default_reservation_hours' => 'nullable|integer|min:1|max:240',
+            'double_consent_enabled' => 'nullable|boolean',
         ]);
 
-        DB::table('app_settings')->update([
-            'default_reservation_hours' => $data['default_reservation_hours'],
+        $settingsRow = DB::table('app_settings')->first();
+
+        $updates = [
             'updated_at' => now(),
-        ]);
+        ];
 
-        return back()->with('message', 'Durée par défaut mise à jour.');
+        $messages = [];
+
+        if ($request->has('default_reservation_hours')) {
+            $updates['default_reservation_hours'] = (int) $data['default_reservation_hours'];
+            $messages[] = 'Durée par défaut mise à jour.';
+        }
+
+        if ($request->has('double_consent_enabled') || $request->boolean('settings_toggle', false)) {
+            $updates['double_consent_enabled'] = $request->boolean('double_consent_enabled');
+            $messages[] = $updates['double_consent_enabled']
+                ? 'Double consentement activé.'
+                : 'Double consentement désactivé.';
+        }
+
+        if (! isset($updates['default_reservation_hours']) && ! array_key_exists('double_consent_enabled', $updates)) {
+            return back()->withErrors(['settings' => 'Aucun paramètre à mettre à jour.']);
+        }
+
+        if ($settingsRow) {
+            DB::table('app_settings')->where('id', $settingsRow->id)->update($updates);
+        } else {
+            DB::table('app_settings')->insert([
+                'default_reservation_hours' => $updates['default_reservation_hours'] ?? 8,
+                'double_consent_enabled' => $updates['double_consent_enabled'] ?? false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        return back()->with('message', implode(' ', $messages));
     }
 }

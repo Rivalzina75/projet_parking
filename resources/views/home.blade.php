@@ -11,10 +11,23 @@
         Système sécurisé pour le personnel : obtenez une place libre immédiatement
         ou suivez votre position dans la file d'attente en temps réel.
     </p>
-    <div class="hero-actions">
-        <a href="{{ route('register.show') }}" class="btn-hero-primary">Demander une place</a>
-        <a href="{{ route('login') }}" class="btn-hero-ghost">Se connecter</a>
-    </div>
+    @auth
+        <p class="hero-sub" style="margin-top:8px; margin-bottom:0;">
+            Bienvenue {{ auth()->user()->name }} 👋
+        </p>
+        <div class="hero-actions">
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ route('admin.users') }}" class="btn-hero-primary">Aller à l'administration</a>
+            @else
+                <a href="{{ route('user.dashboard') }}" class="btn-hero-primary">Aller à mon dashboard</a>
+            @endif
+        </div>
+    @else
+        <div class="hero-actions">
+            <a href="{{ route('register.show') }}" class="btn-hero-primary">Demander une place</a>
+            <a href="{{ route('login') }}" class="btn-hero-ghost">Se connecter</a>
+        </div>
+    @endauth
 </section>
 
 <div class="feature-grid" role="region" aria-label="Fonctionnalités principales">

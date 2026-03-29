@@ -22,7 +22,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231d4ed8' width='100' height='100'/><text x='50' y='70' font-size='70' font-weight='bold' fill='white' text-anchor='middle'>P</text></svg>">
     
-    @vite(['resources/css/style.css'])
+    @vite(['resources/css/style.css', 'resources/js/script.js'])
 </head>
 <body>
     <a href="#main-content" class="sr-only">Accéder au contenu principal</a>
@@ -55,16 +55,11 @@
                     @endauth
                 </div>
 
+                @guest
                 <div class="topbar-actions">
-                    @auth
-                        <form method="POST" action="{{ route('logout') }}" class="logout-form">
-                            @csrf
-                            <button type="submit" class="btn btn-ghost" aria-label="Se déconnecter">Déconnexion</button>
-                        </form>
-                    @else
                         <a href="{{ route('register.show') }}" class="btn btn-primary">Inscription</a>
-                    @endauth
                 </div>
+                @endguest
             </nav>
         </div>
     </header>
@@ -95,15 +90,23 @@
         <span>ParkingPro · Gestion interne des places de stationnement</span>
         <a href="{{ route('legal') }}">Mentions légales</a>
     </footer>
+
+    <div id="consent-modal" class="consent-modal" aria-hidden="true">
+        <div class="consent-modal-backdrop" data-consent-close="true"></div>
+        <section class="consent-modal-card" role="dialog" aria-modal="true" aria-labelledby="consent-modal-title" aria-describedby="consent-modal-text">
+            <h2 id="consent-modal-title">Confirmation requise</h2>
+            <p id="consent-modal-text">Confirmer cette action&nbsp;?</p>
+            <div class="consent-modal-actions">
+                <button type="button" class="btn btn-sm" id="consent-cancel">Annuler</button>
+                <button type="button" class="btn btn-sm btn-primary" id="consent-confirm">Confirmer</button>
+            </div>
+        </section>
+    </div>
     
-    {{-- Navigation toggle script --}}
     <script>
-        document.getElementById('nav-toggle')?.addEventListener('click', function() {
-            const menu = document.getElementById('nav-menu');
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            this.setAttribute('aria-expanded', !isExpanded);
-            menu.classList.toggle('active');
-        });
+        window.appSettings = {
+            doubleConsentEnabled: @json((bool) ($doubleConsentEnabled ?? false)),
+        };
     </script>
 </body>
 </html>

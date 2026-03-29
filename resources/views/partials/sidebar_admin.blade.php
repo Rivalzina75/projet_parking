@@ -13,10 +13,15 @@
        href="{{ route('admin.waiting') }}">
         <span>⏳</span> File d'attente
     </a>
-    <form method="POST" action="{{ route('logout') }}" style="margin-top:auto;">
+    <a class="sb-link {{ ($active ?? '') === 'settings' ? 'active' : '' }}"
+       href="{{ route('admin.settings.page') }}">
+        <span>⚙️</span> Paramètres
+    </a>
+    <form method="POST" action="{{ route('logout') }}" style="margin-top:auto;" data-requires-consent="true"
+          data-consent-message="Êtes-vous sûr de vouloir vous déconnecter ?">
         @csrf
-        <button type="submit" class="sb-logout">
-            <span>→</span> Déconnexion
+        <button type="submit" class="sb-logout" aria-label="Se déconnecter">
+            Déconnexion
         </button>
     </form>
 </aside>

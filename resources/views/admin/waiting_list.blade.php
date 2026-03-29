@@ -12,12 +12,12 @@
                 <div>
                     <h1 class="section-title">File d'attente</h1>
                     <p class="section-sub" role="status">
-                        {{ $waiting->count() }} utilisateur(s) en attente · Les positions sont attribuées par ordre d'arrivée
+                        {{ $waiting->total() }} utilisateur(s) en attente · Les positions sont attribuées par ordre d'arrivée
                     </p>
                 </div>
             </div>
 
-            @if($waiting->isEmpty())
+            @if($waiting->count() === 0)
                 <article class="card text-center" style="padding:48px; color:var(--text-3);" role="status">
                     <div style="font-size:32px; margin-bottom:12px;" aria-hidden="true">🎉</div>
                     <h2 style="font-weight:600; font-size:15px; color:var(--text-2); margin:0 0 8px;">File d'attente vide</h2>
@@ -64,7 +64,8 @@
                                                    value="{{ $entry->position }}" required
                                                    style="width:65px; font-size:12px; padding:4px 8px;"
                                                    aria-label="Position actuelle: {{ $entry->position }}">
-                                            <button class="btn btn-sm" type="submit"
+                                            <button class="btn btn-sm" type="submit" data-requires-consent="true"
+                                                    data-consent-message="Confirmer le déplacement de {{ $entry->user->name }} {{ $entry->user->lastname }} à la position {{ $entry->position }} ?"
                                                     aria-label="Mettre à jour la position de {{ $entry->user->name }}">
                                                 Mettre à jour
                                             </button>
@@ -74,6 +75,19 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div class="pagination-panel" role="region" aria-label="Navigation des pages de la file d'attente">
+                    <p class="muted text-sm">
+                        Page {{ $waiting->currentPage() }} / {{ $waiting->lastPage() }}
+                    </p>
+                    {{ $waiting->onEachSide(1)->links() }}
+                    <form method="GET" action="{{ route('admin.waiting') }}" class="inline-form pagination-jump" aria-label="Aller à une page précise de la file d'attente">
+                        <label for="waiting-page-input" class="sr-only">Numéro de page file d'attente</label>
+                        <input id="waiting-page-input" type="number" name="page" min="1" max="{{ $waiting->lastPage() }}"
+                               value="{{ $waiting->currentPage() }}" style="width:90px;" aria-label="Numéro de page">
+                        <button type="submit" class="btn btn-sm">Aller</button>
+                    </form>
                 </div>
             @endif
         </section>

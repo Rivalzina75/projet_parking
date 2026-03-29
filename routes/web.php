@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'validated'])->prefix('utilisateur')->group(function () {
     // Tableau de bord et profil utilisateur.
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
+    Route::get('/historique', [UserController::class, 'history'])->name('user.history');
     Route::get('/profil', [UserController::class, 'profil'])->name('user.profile');
     Route::post('/profil/password', [UserController::class, 'updatePassword'])->name('user.password.update');
 
@@ -57,16 +58,19 @@ Route::middleware(['auth', 'validated'])->prefix('utilisateur')->group(function 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Gestion des comptes utilisateurs.
     Route::get('/utilisateurs', [AdminController::class, 'users'])->name('admin.users');
+    Route::post('/utilisateurs', [AdminController::class, 'storeUser'])->name('admin.users.store');
     Route::get('/utilisateurs/{user}', [AdminController::class, 'userDetail'])->name('admin.users.show');
     Route::post('/utilisateurs/{user}/validate', [AdminController::class, 'validateUser'])->name('admin.users.validate');
     Route::post('/utilisateurs/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('admin.users.reset-password');
 
     // Actions admin sur les réservations.
     Route::post('/reservation/force', [ReservationController::class, 'forceAssign'])->name('admin.reservation.force');
+    Route::post('/reservation/remove', [ReservationController::class, 'removeAssign'])->name('admin.reservation.remove');
     Route::post('/reservation/{reservation}/close', [ReservationController::class, 'closeReservation'])->name('admin.reservation.close');
 
     // Gestion des places de parking.
     Route::get('/places', [AdminController::class, 'places'])->name('admin.places');
+    Route::get('/places/{spot}/historique', [AdminController::class, 'spotHistory'])->name('admin.places.history');
     Route::post('/places/assign', [AdminController::class, 'assignPlace'])->name('admin.places.assign');
     Route::post('/places', [AdminController::class, 'storePlace'])->name('admin.places.store');
     Route::put('/places/{spot}', [AdminController::class, 'updatePlace'])->name('admin.places.update');
@@ -77,5 +81,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('/liste-attente/{entry}/move', [AdminController::class, 'moveWaiting'])->name('admin.waiting.move');
 
     // Paramètres applicatifs administrateur.
+    Route::get('/parametres', [AdminController::class, 'settingsPage'])->name('admin.settings.page');
     Route::post('/settings', [AdminController::class, 'settings'])->name('admin.settings');
 });

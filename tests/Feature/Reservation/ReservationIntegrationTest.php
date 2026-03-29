@@ -63,6 +63,47 @@ class ReservationIntegrationTest extends TestCase
     }
 
     /**
+     * Test qu'un admin peut enlever une place active via l'action dédiée.
+     */
+    public function test_admin_can_remove_user_reservation_from_user_list_action(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        $reservation = Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot->id,
+            'ended_at' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/admin/reservation/remove', [
+                'user_id' => $user->id,
+            ])
+            ->assertRedirect();
+
+        $reservation->refresh();
+        $this->assertNotNull($reservation->ended_at);
+    }
+
+    /**
+     * Test qu'un admin ne peut pas enlever une place à un utilisateur sans réservation active.
+     */
+    public function test_admin_cannot_remove_user_reservation_when_user_has_no_active_spot(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+
+        $this->actingAs($admin)
+            ->from('/admin/utilisateurs')
+            ->post('/admin/reservation/remove', [
+                'user_id' => $user->id,
+            ])
+            ->assertSessionHasErrors('reservation_remove');
+    }
+
+    /**
      * Test qu'un non-admin ne peut pas forcer une attribution.
      */
     public function test_non_admin_cannot_force_assign(): void
@@ -95,6 +136,32 @@ class ReservationIntegrationTest extends TestCase
                 'parking_spot_id' => $spot->id,
             ])
             ->assertSessionHasErrors('user_id');
+    }
+
+    /**
+     * Test que le message admin est formulé côté tiers quand l'utilisateur ciblé a déjà une réservation.
+     */
+    public function test_admin_force_assign_uses_admin_wording_when_target_has_active_reservation(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot->id,
+            'ended_at' => null,
+            'expires_at' => now()->addHours(2),
+        ]);
+
+        $this->actingAs($admin)
+            ->from('/admin/utilisateurs')
+            ->post('/admin/reservation/force', [
+                'user_id' => $user->id,
+            ])
+            ->assertSessionHasErrors([
+                'reservation' => 'L\'utilisateur a déjà une réservation active.',
+            ]);
     }
 
     /**
@@ -155,5 +222,29 @@ class ReservationIntegrationTest extends TestCase
 
         // Vérifier que user2 n'est plus en attente
         $this->assertDatabaseMissing('waiting_list_entries', ['user_id' => $user2->id]);
+    }
+
+    /**
+     * Test qu'enlever résa retire aussi l'utilisateur de la file d'attente si aucune place active.
+     */
+    public function test_admin_remove_reservation_action_can_remove_user_from_waiting_list(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+
+        WaitingListEntry::factory()->create([
+            'user_id' => $user->id,
+            'position' => 1,
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/admin/reservation/remove', [
+                'user_id' => $user->id,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('waiting_list_entries', [
+            'user_id' => $user->id,
+        ]);
     }
 }

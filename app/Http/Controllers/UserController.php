@@ -34,6 +34,19 @@ class UserController extends Controller
     }
 
     /**
+     * Affiche l'historique complet des réservations de l'utilisateur connecté.
+     */
+    public function history(Request $request)
+    {
+        $history = Reservation::with('parkingSpot')
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('starts_at')
+            ->paginate(25);
+
+        return view('user.history', compact('history'));
+    }
+
+    /**
      * Affiche la page de profil de l'utilisateur connecté.
      */
     public function profil(Request $request)

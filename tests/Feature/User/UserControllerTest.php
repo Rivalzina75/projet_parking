@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\User;
 
+use App\Models\Reservation;
 use App\Models\User;
 use App\Models\ParkingSpot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,5 +93,59 @@ class UserControllerTest extends TestCase
         $this->actingAs($user)
             ->post('/utilisateur/reservation')
             ->assertStatus(302);
+    }
+
+    /**
+     * Test que le dashboard utilisateur expose la déconnexion sidebar et les attributs de consentement.
+     */
+    public function test_user_dashboard_contains_sidebar_logout_and_consent_attributes(): void
+    {
+        $user = User::factory()->create([
+            'is_validated' => true,
+            'role' => 'user',
+        ]);
+
+        ParkingSpot::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/utilisateur/dashboard')
+            ->assertStatus(200)
+            ->assertSee('class="sb-logout"', false)
+            ->assertSee('data-requires-consent="true"', false)
+            ->assertSee('id="consent-modal"', false);
+    }
+
+    /**
+     * Test qu'un utilisateur peut consulter son historique complet daté.
+     */
+    public function test_user_can_view_full_dated_history_page(): void
+    {
+        $user = User::factory()->create([
+            'is_validated' => true,
+            'role' => 'user',
+        ]);
+
+        $spot1 = ParkingSpot::factory()->create(['number' => 'A-1']);
+        $spot2 = ParkingSpot::factory()->create(['number' => 'A-2']);
+
+        Reservation::factory()->closed()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot1->id,
+            'starts_at' => now()->subDays(2),
+        ]);
+
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot2->id,
+            'starts_at' => now()->subDay(),
+        ]);
+
+        $this->actingAs($user)
+            ->get('/utilisateur/historique')
+            ->assertStatus(200)
+            ->assertViewIs('user.history')
+            ->assertSee('A-1', false)
+            ->assertSee('A-2', false)
+            ->assertSee('Historique complet des réservations', false);
     }
 }

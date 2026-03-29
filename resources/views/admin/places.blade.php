@@ -42,7 +42,10 @@
                         <input type="number" id="default-duration" min="1" max="240" name="default_reservation_hours"
                                value="{{ $defaultDuration }}" required style="width:90px;" aria-label="Durée par défaut en heures">
                         <span class="muted text-sm">heures</span>
-                        <button class="btn btn-sm" type="submit">Mettre à jour</button>
+                        <button class="btn btn-sm" type="submit" data-requires-consent="true"
+                                data-consent-message="Confirmer la mise à jour de la durée par défaut des réservations ?">
+                            Mettre à jour
+                        </button>
                     </form>
                 </article>
 
@@ -57,7 +60,8 @@
                         <label for="place-location" class="sr-only">Emplacement</label>
                         <input type="text" id="place-location" name="location" placeholder="Emplacement ex: Bâtiment A - N-1"
                                maxlength="255" style="flex:1; min-width:160px;" aria-label="Emplacement de la place">
-                        <button class="btn btn-sm" type="submit"
+                        <button class="btn btn-sm" type="submit" data-requires-consent="true"
+                                data-consent-message="Confirmer l'ajout de cette nouvelle place ?"
                                 style="background:var(--amber); border-color:var(--amber); color:white;">
                             + Ajouter
                         </button>
@@ -67,6 +71,12 @@
                 {{-- Attribution manuelle --}}
                 <article class="card" role="region" aria-label="Attribution manuelle d'une place">
                     <h2 style="font-size:13px; font-weight:700; margin-bottom:10px;">Attribution manuelle</h2>
+                    <div class="inline-form" style="margin-bottom:10px;" aria-label="Recherche utilisateur par nom">
+                        <label for="user-search" class="sr-only">Rechercher un utilisateur</label>
+                        <input type="text" id="user-search" name="user_search"
+                               placeholder="Rechercher par prénom ou nom" style="min-width:220px;" aria-label="Recherche utilisateur">
+                    </div>
+
                     <form method="POST" action="{{ route('admin.places.assign') }}" class="inline-form" aria-label="Formulaire d'attribution manuelle">
                         @csrf
                         <label for="user-select" class="sr-only">Sélectionner un utilisateur</label>
@@ -80,13 +90,16 @@
                         <label for="spot-select" class="sr-only">Sélectionner une place</label>
                         <select id="spot-select" name="spot_id" required aria-label="Place de parking">
                             <option value="">— Choisir une place —</option>
-                            @foreach($spots as $spot)
+                            @foreach($allSpotsForAssign as $spot)
                                 <option value="{{ $spot->id }}">
                                     {{ $spot->number }}{{ $spot->location ? ' — '.$spot->location : '' }}
                                 </option>
                             @endforeach
                         </select>
-                        <button class="btn btn-sm btn-primary" type="submit">Attribuer</button>
+                        <button class="btn btn-sm btn-primary" type="submit" data-requires-consent="true"
+                                data-consent-message="Confirmer l'attribution manuelle de cette place ?">
+                            Attribuer
+                        </button>
                     </form>
                 </article>
             </div>
@@ -100,8 +113,8 @@
                             <th scope="col">Emplacement</th>
                             <th scope="col">Statut</th>
                             <th scope="col">Occupée par</th>
-                            <th scope="col">Active</th>
-                            <th scope="col">Actions</th>
+                            <th scope="col">Historique</th>
+                            <th scope="col">Suppression</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -120,52 +133,37 @@
                                     {{ $reservation ? $reservation->user->name.' '.$reservation->user->lastname : '—' }}
                                 </td>
                                 <td>
-                                    <span class="badge {{ $spot->is_active ? 'badge-blue' : 'badge-red' }}"
-                                          role="status" aria-label="{{ $spot->is_active ? 'Place active' : 'Place inactive' }}">
-                                        {{ $spot->is_active ? 'Oui' : 'Non' }}
-                                    </span>
+                                    <a href="{{ route('admin.places.history', $spot) }}" class="btn btn-sm">Voir tout</a>
                                 </td>
                                 <td>
-                                    <div class="actions" role="toolbar" aria-label="Actions pour cette place">
-                                        <form method="POST" action="{{ route('admin.places.update', $spot) }}"
-                                              class="inline-form" aria-label="Formulaire de modification de place">
-                                            @csrf
-                                            @method('PUT')
-                                            <label for="number-{{ $spot->id }}" class="sr-only">Numéro</label>
-                                            <input type="text" id="number-{{ $spot->id }}" name="number" value="{{ $spot->number }}"
-                                                   required style="width:65px; font-size:12px; padding:4px 8px;" aria-label="Numéro de place">
-                                            
-                                            <label for="location-{{ $spot->id }}" class="sr-only">Emplacement</label>
-                                            <input type="text" id="location-{{ $spot->id }}" name="location" value="{{ $spot->location }}"
-                                                   style="width:120px; font-size:12px; padding:4px 8px;" aria-label="Emplacement">
-                                            
-                                            <label style="font-size:12px; display:flex; align-items:center; gap:4px; font-weight:500; color:var(--text-2);">
-                                                <input type="checkbox" name="is_active" value="1"
-                                                       {{ $spot->is_active ? 'checked' : '' }} aria-label="Activer cette place">
-                                                Active
-                                            </label>
-                                            <button class="btn btn-sm" type="submit"
-                                                    style="border-color:var(--amber); color:var(--amber-text);"
-                                                    aria-label="Modifier la place {{ $spot->number }}">
-                                                Modifier
-                                            </button>
-                                        </form>
-
-                                        <form method="POST" action="{{ route('admin.places.delete', $spot) }}" style="display: inline;"
-                                              aria-label="Formulaire de suppression de place">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="btn btn-sm btn-danger" type="submit"
-                                                    aria-label="Supprimer la place {{ $spot->number }}">
-                                                Supprimer
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <form method="POST" action="{{ route('admin.places.delete', $spot) }}" style="display: inline;"
+                                          aria-label="Formulaire de suppression de place">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-danger" type="submit" data-requires-consent="true"
+                                                data-consent-message="Êtes-vous sûr de vouloir supprimer la place {{ $spot->number }} ?"
+                                                aria-label="Supprimer la place {{ $spot->number }}">
+                                            Supprimer
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            <div class="pagination-panel" role="region" aria-label="Navigation des pages des places">
+                <p class="muted text-sm">
+                    Page {{ $spots->currentPage() }} / {{ $spots->lastPage() }}
+                </p>
+                {{ $spots->onEachSide(1)->links() }}
+                <form method="GET" action="{{ route('admin.places') }}" class="inline-form pagination-jump" aria-label="Aller à une page précise des places">
+                    <label for="places-page-input" class="sr-only">Numéro de page places</label>
+                    <input id="places-page-input" type="number" name="page" min="1" max="{{ $spots->lastPage() }}"
+                           value="{{ $spots->currentPage() }}" style="width:90px;" aria-label="Numéro de page">
+                    <button type="submit" class="btn btn-sm">Aller</button>
+                </form>
             </div>
         </section>
     </div>

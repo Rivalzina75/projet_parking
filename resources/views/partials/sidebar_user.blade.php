@@ -9,10 +9,11 @@
        href="{{ route('user.profile') }}">
         <span>👤</span> Mon profil
     </a>
-    <form method="POST" action="{{ route('logout') }}" style="margin-top:auto;">
+    <form method="POST" action="{{ route('logout') }}" style="margin-top:auto;" data-requires-consent="true"
+          data-consent-message="Êtes-vous sûr de vouloir vous déconnecter ?">
         @csrf
-        <button type="submit" class="sb-logout">
-            <span>→</span> Déconnexion
+        <button type="submit" class="sb-logout" aria-label="Se déconnecter">
+            Déconnexion
         </button>
     </form>
 </aside>

@@ -65,7 +65,9 @@
                         </time>
                         <form method="POST" action="{{ route('admin.reservation.close', $activeReservation) }}" aria-label="Formulaire de clôture">
                             @csrf
-                            <button class="btn btn-sm btn-danger w-full" style="justify-content:center;" aria-label="Clôturer la réservation de {{ $user->name }}">
+                            <button class="btn btn-sm btn-danger w-full" style="justify-content:center;" data-requires-consent="true"
+                                    data-consent-message="Êtes-vous sûr de vouloir clôturer la réservation active de {{ $user->name }} {{ $user->lastname }} ?"
+                                    aria-label="Clôturer la réservation de {{ $user->name }}">
                                 Clôturer la réservation
                             </button>
                         </form>
@@ -88,14 +90,18 @@
                         @if(!$user->is_validated)
                             <form method="POST" action="{{ route('admin.users.validate', $user) }}" aria-label="Valider le compte">
                                 @csrf
-                                <button class="btn btn-success w-full" style="justify-content:center;" aria-label="Valider le compte de {{ $user->name }} {{ $user->lastname }}">
+                                <button class="btn btn-success w-full" style="justify-content:center;" data-requires-consent="true"
+                                        data-consent-message="Êtes-vous sûr de vouloir valider le compte de {{ $user->name }} {{ $user->lastname }} ?"
+                                        aria-label="Valider le compte de {{ $user->name }} {{ $user->lastname }}">
                                     Valider le compte
                                 </button>
                             </form>
                         @endif
                         <form method="POST" action="{{ route('admin.users.reset-password', $user) }}" aria-label="Réinitialiser le mot de passe">
                             @csrf
-                            <button class="btn w-full" style="justify-content:center;" aria-label="Réinitialiser le mot de passe de {{ $user->name }} {{ $user->lastname }}">
+                            <button class="btn w-full" style="justify-content:center;" data-requires-consent="true"
+                                    data-consent-message="Êtes-vous sûr de vouloir réinitialiser le mot de passe de l'utilisateur {{ $user->name }} {{ $user->lastname }} ?"
+                                    aria-label="Réinitialiser le mot de passe de {{ $user->name }} {{ $user->lastname }}">
                                 Réinitialiser le mot de passe
                             </button>
                         </form>

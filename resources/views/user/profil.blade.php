@@ -74,7 +74,8 @@
                             @endif
                         </div>
 
-                        <button type="submit" class="btn btn-success" style="width:fit-content;">
+                        <button type="submit" class="btn btn-success" style="width:fit-content;" data-requires-consent="true"
+                                data-consent-message="Êtes-vous sûr de vouloir modifier votre mot de passe ?">
                             Enregistrer le nouveau mot de passe
                         </button>
                     </form>

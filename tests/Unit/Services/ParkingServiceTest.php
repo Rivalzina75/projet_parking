@@ -174,4 +174,76 @@ class ParkingServiceTest extends TestCase
         $uniqueSpots = count(array_unique($spotIds));
         $this->assertGreaterThan(1, $uniqueSpots);
     }
+
+    /**
+     * Test qu'un utilisateur est ajouté en dernière position si la file existe déjà.
+     */
+    public function test_user_is_appended_to_end_of_waiting_list(): void
+    {
+        $newUser = User::factory()->create(['is_validated' => true]);
+
+        $spot = ParkingSpot::factory()->create();
+        Reservation::factory()->create(['parking_spot_id' => $spot->id]);
+
+        for ($position = 1; $position <= 10; $position++) {
+            $waitingUser = User::factory()->create(['is_validated' => true]);
+            WaitingListEntry::factory()->create([
+                'user_id' => $waitingUser->id,
+                'position' => $position,
+            ]);
+        }
+
+        $result = $this->parkingService->requestReservation($newUser);
+
+        $this->assertSame('waiting', $result['status']);
+        $this->assertSame(11, $result['position']);
+        $this->assertDatabaseHas('waiting_list_entries', [
+            'user_id' => $newUser->id,
+            'position' => 11,
+        ]);
+    }
+
+    /**
+     * Test que lorsqu'une place se libère, le premier de file obtient la place et la file baisse de 1.
+     */
+    public function test_first_waiting_user_gets_freed_spot_and_queue_shrinks(): void
+    {
+        $owner = User::factory()->create(['is_validated' => true]);
+        $waiting1 = User::factory()->create(['is_validated' => true]);
+        $waiting2 = User::factory()->create(['is_validated' => true]);
+        $waiting3 = User::factory()->create(['is_validated' => true]);
+
+        $spot = ParkingSpot::factory()->create();
+
+        $activeReservation = Reservation::factory()->create([
+            'user_id' => $owner->id,
+            'parking_spot_id' => $spot->id,
+            'ended_at' => null,
+            'expires_at' => now()->addHours(2),
+        ]);
+
+        WaitingListEntry::factory()->create(['user_id' => $waiting1->id, 'position' => 1]);
+        WaitingListEntry::factory()->create(['user_id' => $waiting2->id, 'position' => 2]);
+        WaitingListEntry::factory()->create(['user_id' => $waiting3->id, 'position' => 3]);
+
+        $this->parkingService->closeReservation($activeReservation);
+
+        $this->assertDatabaseHas('reservations', [
+            'user_id' => $waiting1->id,
+            'parking_spot_id' => $spot->id,
+            'ended_at' => null,
+        ]);
+
+        $this->assertDatabaseMissing('waiting_list_entries', [
+            'user_id' => $waiting1->id,
+        ]);
+
+        $entry2 = WaitingListEntry::where('user_id', $waiting2->id)->first();
+        $entry3 = WaitingListEntry::where('user_id', $waiting3->id)->first();
+
+        $this->assertNotNull($entry2);
+        $this->assertNotNull($entry3);
+        $this->assertSame(1, $entry2->position);
+        $this->assertSame(2, $entry3->position);
+    }
 }

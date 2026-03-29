@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\User;
 use App\Models\ParkingSpot;
+use App\Models\Reservation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -63,5 +64,48 @@ class AdminPlacesManagementTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseMissing('parking_spots', ['id' => $spot->id]);
+    }
+
+    /**
+     * Test qu'un admin ne peut pas supprimer une place occupée.
+     */
+    public function test_admin_cannot_delete_occupied_spot(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        $user = User::factory()->create(['role' => 'user', 'is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        Reservation::factory()->create([
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot->id,
+            'ended_at' => null,
+            'expires_at' => now()->addHour(),
+        ]);
+
+        $this->actingAs($admin)
+            ->from('/admin/places')
+            ->delete("/admin/places/{$spot->id}")
+            ->assertSessionHasErrors('place');
+
+        $this->assertDatabaseHas('parking_spots', ['id' => $spot->id]);
+    }
+
+    /**
+     * Test que la création d'une place en doublon échoue.
+     */
+    public function test_admin_cannot_create_duplicate_spot_number(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create(['role' => 'admin', 'is_validated' => true]);
+        ParkingSpot::factory()->create(['number' => 'P-100']);
+
+        $this->actingAs($admin)
+            ->from('/admin/places')
+            ->post('/admin/places', [
+                'number' => 'P-100',
+                'location' => 'Duplicated',
+            ])
+            ->assertSessionHasErrors('number');
     }
 }

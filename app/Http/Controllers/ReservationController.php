@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Models\ParkingSpot;
 use App\Models\User;
 use App\Services\ParkingService;
 use Illuminate\Http\Request;
@@ -19,6 +20,10 @@ class ReservationController extends Controller
      */
     public function requestReservation(Request $request)
     {
+        if (!$request->user()->is_validated) {
+            return back()->withErrors(['reservation' => 'Votre compte doit être validé pour effectuer une réservation.']);
+        }
+
         $result = $this->parkingService->requestReservation($request->user());
 
         if ($result['status'] === 'error') {
@@ -49,10 +54,16 @@ class ReservationController extends Controller
     {
         $data = $request->validate([
             'user_id' => 'required|exists:users,id',
+            'parking_spot_id' => 'nullable|exists:parking_spots,id',
         ]);
 
         $user = User::findOrFail($data['user_id']);
-        $result = $this->parkingService->requestReservation($user);
+        if (! empty($data['parking_spot_id'])) {
+            $spot = ParkingSpot::findOrFail($data['parking_spot_id']);
+            $result = $this->parkingService->assignSpecificSpotToUser($user, $spot, $request->user()->id);
+        } else {
+            $result = $this->parkingService->requestReservation($user);
+        }
 
         if ($result['status'] === 'error') {
             return back()->withErrors(['reservation' => $result['message']]);

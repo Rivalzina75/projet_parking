@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\User;
 use App\Models\ParkingSpot;
+use App\Models\Reservation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -175,5 +176,112 @@ class AdminControllerTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/liste-attente')
             ->assertStatus(200);
+    }
+
+    /**
+     * Test qu'un admin peut attribuer manuellement une place précise.
+     */
+    public function test_admin_can_assign_specific_place_to_user(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $spot = ParkingSpot::factory()->create();
+
+        $this->actingAs($admin)
+            ->post('/admin/places/assign', [
+                'user_id' => $user->id,
+                'spot_id' => $spot->id,
+            ])
+            ->assertStatus(302);
+
+        $this->assertDatabaseHas('reservations', [
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot->id,
+        ]);
+    }
+
+    /**
+     * Test qu'un admin ne peut pas attribuer une place à un compte non validé.
+     */
+    public function test_admin_cannot_assign_place_to_unvalidated_user(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'user',
+            'is_validated' => false,
+        ]);
+
+        $spot = ParkingSpot::factory()->create();
+
+        $this->actingAs($admin)
+            ->from('/admin/places')
+            ->post('/admin/places/assign', [
+                'user_id' => $user->id,
+                'spot_id' => $spot->id,
+            ])
+            ->assertSessionHasErrors('assign');
+
+        $this->assertDatabaseMissing('reservations', [
+            'user_id' => $user->id,
+            'parking_spot_id' => $spot->id,
+        ]);
+    }
+
+    /**
+     * Test qu'un admin ne peut pas attribuer une place déjà occupée.
+     */
+    public function test_admin_cannot_assign_already_occupied_place(): void
+    {
+        /** @var User $admin */
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_validated' => true,
+        ]);
+
+        $occupiedBy = User::factory()->create([
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $targetUser = User::factory()->create([
+            'role' => 'user',
+            'is_validated' => true,
+        ]);
+
+        $spot = ParkingSpot::factory()->create();
+
+        Reservation::factory()->create([
+            'user_id' => $occupiedBy->id,
+            'parking_spot_id' => $spot->id,
+            'ended_at' => null,
+            'expires_at' => now()->addHours(2),
+        ]);
+
+        $this->actingAs($admin)
+            ->from('/admin/places')
+            ->post('/admin/places/assign', [
+                'user_id' => $targetUser->id,
+                'spot_id' => $spot->id,
+            ])
+            ->assertSessionHasErrors('assign');
+
+        $this->assertDatabaseMissing('reservations', [
+            'user_id' => $targetUser->id,
+            'parking_spot_id' => $spot->id,
+        ]);
     }
 }

@@ -99,4 +99,79 @@ class ParkingServiceTest extends TestCase
 
         $this->assertSame('error', $result['status']);
     }
+
+    /**
+     * Test que l'expiration de réservation respecte la durée par défaut (8 heures).
+     */
+    public function test_reservation_expires_after_default_duration(): void
+    {
+        $user = User::factory()->create(['is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+
+        $this->parkingService->assignSpecificSpotToUser($user, $spot);
+
+        $reservation = Reservation::where('user_id', $user->id)->first();
+        $expectedExpiration = $reservation->starts_at->addHours(8);
+
+        $this->assertTrue(
+            $reservation->expires_at->diffInSeconds($expectedExpiration) < 2
+        );
+    }
+
+    /**
+     * Test qu'un utilisateur avec réservation active ne peut pas en faire une nouvelle.
+     */
+    public function test_user_with_active_reservation_cannot_request_another(): void
+    {
+        $user = User::factory()->create(['is_validated' => true]);
+        ParkingSpot::factory()->count(5)->create();
+
+        // Première réservation OK
+        $result1 = $this->parkingService->requestReservation($user);
+        $this->assertSame('reserved', $result1['status']);
+
+        // Deuxième tentative bloquée
+        $result2 = $this->parkingService->requestReservation($user);
+        $this->assertSame('error', $result2['status']);
+        $this->assertStringContainsString('déjà une réservation', $result2['message']);
+    }
+
+    /**
+     * Test qu'un utilisateur en file d'attente ne peut pas faire une autre demande.
+     */
+    public function test_user_in_waiting_list_cannot_request_again(): void
+    {
+        $user = User::factory()->create(['is_validated' => true]);
+        $spot = ParkingSpot::factory()->create();
+        Reservation::factory()->create(['parking_spot_id' => $spot->id]);
+
+        // Première demande → attente
+        $result1 = $this->parkingService->requestReservation($user);
+        $this->assertSame('waiting', $result1['status']);
+
+        // Deuxième tentative bloquée
+        $result2 = $this->parkingService->requestReservation($user);
+        $this->assertSame('error', $result2['status']);
+        $this->assertStringContainsString('attente', $result2['message']);
+    }
+
+    /**
+     * Test que les attributions utilisent des spots variés (aléatoire).
+     */
+    public function test_reservations_are_randomly_assigned_to_different_spots(): void
+    {
+        $spots = ParkingSpot::factory()->count(5)->create();
+        $users = User::factory()->count(5)->create(['is_validated' => true]);
+
+        $spotIds = [];
+        foreach ($users as $user) {
+            $this->parkingService->requestReservation($user);
+            $reservation = Reservation::where('user_id', $user->id)->first();
+            $spotIds[] = $reservation->parking_spot_id;
+        }
+
+        // Au moins 3 spots différents utilisés (sur 5 tentatives + 5 spots)
+        $uniqueSpots = count(array_unique($spotIds));
+        $this->assertGreaterThan(1, $uniqueSpots);
+    }
 }

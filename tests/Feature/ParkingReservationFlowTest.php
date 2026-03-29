@@ -93,4 +93,68 @@ class ParkingReservationFlowTest extends TestCase
             Reservation::where('user_id', $user->id)->where('parking_spot_id', $spot->id)->exists()
         );
     }
+
+    /**
+     * Test que l'expiration respecte la durée par défaut de l'application.
+     */
+    public function test_reservation_expiration_uses_default_duration(): void
+    {
+        $user = User::factory()->create(['is_validated' => true, 'role' => 'user']);
+        ParkingSpot::factory()->create();
+
+        $this->actingAs($user)->post('/utilisateur/reservation')->assertRedirect();
+
+        $reservation = Reservation::where('user_id', $user->id)->first();
+        $expectedExpiration = $reservation->starts_at->addHours(8);
+
+        // Durée par défaut est 8h, tolérance 2 sec
+        $this->assertTrue(
+            $reservation->expires_at->diffInSeconds($expectedExpiration) < 2
+        );
+    }
+
+    /**
+     * Test qu'un utilisateur avec réservation active ne peut pas en faire une nouvelle.
+     */
+    public function test_user_with_active_reservation_cannot_request_another(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create(['is_validated' => true, 'role' => 'user']);
+        ParkingSpot::factory()->count(3)->create();
+
+        // Première demande OK
+        $this->actingAs($user)->post('/utilisateur/reservation')->assertRedirect();
+        $this->assertDatabaseHas('reservations', ['user_id' => $user->id]);
+
+        // Deuxième tentative → erreur
+        $this->actingAs($user)
+            ->from('/utilisateur/dashboard')
+            ->post('/utilisateur/reservation')
+            ->assertSessionHasErrors('reservation');
+    }
+
+    /**
+     * Test qu'un utilisateur en file d'attente ne peut pas faire une autre demande.
+     */
+    public function test_user_in_waiting_list_cannot_request_again(): void
+    {
+        $spot = ParkingSpot::factory()->create();
+        /** @var User $user1 */
+        $user1 = User::factory()->create(['is_validated' => true, 'role' => 'user']);
+        /** @var User $user2 */
+        $user2 = User::factory()->create(['is_validated' => true, 'role' => 'user']);
+
+        // User1 prend la seule place
+        $this->actingAs($user1)->post('/utilisateur/reservation')->assertRedirect();
+
+        // User2 premier appel → attente
+        $this->actingAs($user2)->post('/utilisateur/reservation')->assertRedirect();
+        $this->assertDatabaseHas('waiting_list_entries', ['user_id' => $user2->id]);
+
+        // User2 deuxième appel → bloqué
+        $this->actingAs($user2)
+            ->from('/utilisateur/dashboard')
+            ->post('/utilisateur/reservation')
+            ->assertSessionHasErrors('reservation');
+    }
 }

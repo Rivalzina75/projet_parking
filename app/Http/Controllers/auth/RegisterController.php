@@ -5,6 +5,8 @@ namespace App\Http\Controllers\auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
@@ -23,17 +25,32 @@ class RegisterController extends Controller
             'password' => 'required|string|min:10|regex:/[a-z]/|regex:/[A-Z]/|regex:/[0-9]/|regex:/[^a-zA-Z0-9]/|confirmed',
         ]);
         try {
-            $user = User::create([
-                'name' => $request->name,
-                'lastname' => $request->lastname,
-                'email' => $request->email,
+            User::create([
+                'name' => trim($request->name),
+                'lastname' => trim($request->lastname),
+                'email' => trim($request->email),
                 'password' => Hash::make($request->password),
                 'role' => 'user',
-                'is_validated' => false,
+                'is_validated' => (bool) false,
             ]);
+
             return redirect('/')->with('message', 'Inscription réussie, en attente de validation par l\'administrateur.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.']);
+        } catch (QueryException $e) {
+            Log::error('Erreur SQL lors de l\'inscription', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->withErrors(['error' => 'Service momentanément indisponible. Vérifiez la base de données puis réessayez.']);
+        } catch (\Throwable $e) {
+            Log::error('Erreur inattendue lors de l\'inscription', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()
+                ->withInput($request->except('password', 'password_confirmation'))
+                ->withErrors(['error' => 'Une erreur inattendue est survenue lors de l\'inscription.']);
         }
     }
 }

@@ -1,0 +1,8 @@
+C:\xampp\php\php.exe composer.phar install
+C:\xampp\php\php.exe composer.phar update
+C:\xampp\php\php.exe artisan key:generate
+C:\xampp\php\php.exe artisan migrate --seed
+C:\xampp\php\php.exe artisan migrate:fresh --seed
+C:\xampp\php\php.exe artisan serve
+npm run dev
+

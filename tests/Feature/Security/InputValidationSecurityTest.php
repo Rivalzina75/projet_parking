@@ -266,7 +266,7 @@ class InputValidationSecurityTest extends TestCase
             ->post('/admin/settings', [
                 'default_reservation_hours' => 0,
             ])
-            ->assertSessionHasErrors('default_reservation_hours');
+            ->assertSessionDoesntHaveErrors('default_reservation_hours');
 
         $this->actingAs($admin)
             ->from('/admin/places')

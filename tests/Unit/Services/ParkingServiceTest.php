@@ -2,13 +2,13 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\Param;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Models\WaitingListEntry;
 use App\Services\ParkingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ParkingServiceTest extends TestCase
@@ -254,7 +254,7 @@ class ParkingServiceTest extends TestCase
     public function test_zero_duration_creates_permanent_reservations(): void
     {
         // Définir la durée à 0
-        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+        Param::setValue(Param::DEFAULT_RESERVATION_HOURS, 0);
 
         $user = User::factory()->create(['is_validated' => true]);
         $spot = ParkingSpot::factory()->create();
@@ -273,7 +273,7 @@ class ParkingServiceTest extends TestCase
      */
     public function test_permanent_reservations_prevent_new_assignments(): void
     {
-        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+        Param::setValue(Param::DEFAULT_RESERVATION_HOURS, 0);
 
         $user1 = User::factory()->create(['is_validated' => true]);
         $user2 = User::factory()->create(['is_validated' => true]);
@@ -297,7 +297,7 @@ class ParkingServiceTest extends TestCase
      */
     public function test_admin_can_close_permanent_reservation(): void
     {
-        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+        Param::setValue(Param::DEFAULT_RESERVATION_HOURS, 0);
 
         $admin = User::factory()->create(['is_validated' => true, 'role' => 'admin']);
         $user = User::factory()->create(['is_validated' => true]);
@@ -319,7 +319,7 @@ class ParkingServiceTest extends TestCase
      */
     public function test_user_can_abandon_permanent_reservation(): void
     {
-        DB::table('app_settings')->update(['default_reservation_hours' => 0]);
+        Param::setValue(Param::DEFAULT_RESERVATION_HOURS, 0);
 
         $user = User::factory()->create(['is_validated' => true]);
         $spot = ParkingSpot::factory()->create();

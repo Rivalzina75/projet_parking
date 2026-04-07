@@ -12,11 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Ajouter lastname en second après name
-            if (! Schema::hasColumn('users', 'lastname')) {
-                $table->string('lastname')->default('')->after('name');
-            }
-
             // Ajouter role après password
             if (! Schema::hasColumn('users', 'role')) {
                 $table->string('role')->default('user')->after('password');
@@ -35,7 +30,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('lastname', 'role', 'is_validated');
+            // Le champ lastname est géré par la migration dédiée 2026_03_28_090000.
+            if (Schema::hasColumn('users', 'role')) {
+                $table->dropColumn('role');
+            }
+
+            if (Schema::hasColumn('users', 'is_validated')) {
+                $table->dropColumn('is_validated');
+            }
         });
     }
 };

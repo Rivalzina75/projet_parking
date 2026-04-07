@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Param;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -120,7 +120,7 @@ class AdminIntegrationTest extends TestCase
             ])
             ->assertStatus(302);
 
-        $this->assertTrue((bool) DB::table('app_settings')->value('double_consent_enabled'));
+        $this->assertTrue(Param::getBoolValue(Param::DOUBLE_CONSENT_ENABLED, false));
     }
 
     /**

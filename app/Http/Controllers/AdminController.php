@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Param;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
@@ -9,7 +10,6 @@ use App\Models\WaitingListEntry;
 use App\Services\ParkingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -163,7 +163,7 @@ class AdminController extends Controller
             })
             ->count();
         $free = max(0, $total - $occupied);
-        $defaultDuration = (int) (DB::table('app_settings')->value('default_reservation_hours') ?? 8);
+        $defaultDuration = Param::getIntValue(Param::DEFAULT_RESERVATION_HOURS, 8);
 
         return view('admin.places', compact(
             'spots',
@@ -182,8 +182,8 @@ class AdminController extends Controller
      */
     public function settingsPage()
     {
-        $defaultDuration = (int) (DB::table('app_settings')->value('default_reservation_hours') ?? 8);
-        $doubleConsentEnabled = (bool) (DB::table('app_settings')->value('double_consent_enabled') ?? false);
+        $defaultDuration = Param::getIntValue(Param::DEFAULT_RESERVATION_HOURS, 8);
+        $doubleConsentEnabled = Param::getBoolValue(Param::DOUBLE_CONSENT_ENABLED, false);
 
         return view('admin.settings', compact('defaultDuration', 'doubleConsentEnabled'));
     }
@@ -325,39 +325,24 @@ class AdminController extends Controller
             'double_consent_enabled' => 'nullable|boolean',
         ]);
 
-        $settingsRow = DB::table('app_settings')->first();
-
-        $updates = [
-            'updated_at' => now(),
-        ];
-
         $messages = [];
 
         if ($request->has('default_reservation_hours')) {
-            $updates['default_reservation_hours'] = (int) $data['default_reservation_hours'];
+            // Nouveau format: une ligne par paramètre dans la table params.
+            Param::setValue(Param::DEFAULT_RESERVATION_HOURS, (int) $data['default_reservation_hours']);
             $messages[] = 'Durée par défaut mise à jour.';
         }
 
         if ($request->has('double_consent_enabled') || $request->boolean('settings_toggle', false)) {
-            $updates['double_consent_enabled'] = $request->boolean('double_consent_enabled');
-            $messages[] = $updates['double_consent_enabled']
+            $doubleConsentEnabled = $request->boolean('double_consent_enabled');
+            Param::setValue(Param::DOUBLE_CONSENT_ENABLED, $doubleConsentEnabled);
+            $messages[] = $doubleConsentEnabled
                 ? 'Double consentement activé.'
                 : 'Double consentement désactivé.';
         }
 
-        if (! isset($updates['default_reservation_hours']) && ! array_key_exists('double_consent_enabled', $updates)) {
+        if ($messages === []) {
             return back()->withErrors(['settings' => 'Aucun paramètre à mettre à jour.']);
-        }
-
-        if ($settingsRow) {
-            DB::table('app_settings')->where('id', $settingsRow->id)->update($updates);
-        } else {
-            DB::table('app_settings')->insert([
-                'default_reservation_hours' => $updates['default_reservation_hours'] ?? 8,
-                'double_consent_enabled' => $updates['double_consent_enabled'] ?? false,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
         }
 
         return back()->with('message', implode(' ', $messages));

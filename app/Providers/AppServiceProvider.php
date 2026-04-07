@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Param;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
@@ -32,10 +32,10 @@ class AppServiceProvider extends ServiceProvider
             }
 
             try {
-                if (! Schema::hasTable('app_settings')) {
+                if (! Schema::hasTable('params')) {
                     $doubleConsentEnabled = false;
                 } else {
-                    $doubleConsentEnabled = (bool) (DB::table('app_settings')->value('double_consent_enabled') ?? false);
+                    $doubleConsentEnabled = Param::getBoolValue(Param::DOUBLE_CONSENT_ENABLED, false);
                 }
             } catch (\Throwable) {
                 $doubleConsentEnabled = false;

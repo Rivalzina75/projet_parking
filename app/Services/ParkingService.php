@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Param;
 use App\Models\ParkingSpot;
 use App\Models\Reservation;
 use App\Models\User;
@@ -243,6 +244,9 @@ class ParkingService
 
     private function defaultDurationHours(): int
     {
-        return (int) (DB::table('app_settings')->value('default_reservation_hours') ?? 8);
+        if (!isset($duree)) {
+            $duree = Param::getIntValue(Param::DEFAULT_RESERVATION_HOURS, 8);
+        }
+        return $duree;
     }
 }
